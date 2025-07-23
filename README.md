@@ -9,6 +9,8 @@
 - 🎨 现代化 UI：使用 Tailwind CSS 构建的美观界面
 - ⚡ 快速加载：基于 Next.js 的优化性能
 - 🔒 安全性：前端验证，不存储个人信息
+- 🐳 Docker 支持：容器化部署
+- 🚀 CI/CD：自动化构建、测试和部署
 
 ## 技术栈
 
@@ -18,21 +20,47 @@
 - **图标**: Heroicons
 - **HTTP 客户端**: Axios
 - **包管理器**: pnpm
+- **容器化**: Docker & Docker Compose
+- **CI/CD**: GitHub Actions
 
-## 开发环境设置
+## 快速开始
 
-### 前置要求
+### 使用 Docker（推荐）
+
+#### 生产环境
+
+```bash
+# 构建并启动
+./scripts/deploy.sh
+
+# 或者手动运行
+docker-compose up -d
+```
+
+#### 开发环境
+
+```bash
+# 开发环境
+./scripts/dev.sh
+
+# 或者手动运行
+docker-compose -f docker-compose.dev.yml up -d
+```
+
+### 本地开发
+
+#### 前置要求
 
 - Node.js 18+
 - pnpm
 
-### 安装依赖
+#### 安装依赖
 
 ```bash
 pnpm install
 ```
 
-### 开发服务器
+#### 开发服务器
 
 ```bash
 pnpm dev
@@ -40,16 +68,109 @@ pnpm dev
 
 访问 [http://localhost:3000](http://localhost:3000) 查看应用。
 
-### 构建生产版本
+#### 构建生产版本
 
 ```bash
 pnpm build
 ```
 
-### 运行生产版本
+#### 运行生产版本
 
 ```bash
 pnpm start
+```
+
+## Docker 命令
+
+### Docker 镜像管理
+
+```bash
+# 构建镜像
+pnpm docker:build
+
+# 运行容器
+pnpm docker:run
+
+# 使用 docker-compose
+pnpm compose:up     # 启动服务
+pnpm compose:down   # 停止服务
+pnpm compose:logs   # 查看日志
+```
+
+### 环境管理
+
+```bash
+# 开发环境
+pnpm docker:dev     # 启动开发环境
+
+# 生产环境
+pnpm docker:deploy  # 部署生产环境
+```
+
+### 手动 Docker 操作
+
+```bash
+# 构建生产镜像
+docker build -t unnc-freshman-verify-gateway .
+
+# 运行生产容器
+docker run -p 3000:3000 unnc-freshman-verify-gateway
+
+# 使用 docker-compose 启动完整服务栈
+docker-compose up -d
+
+# 查看服务状态
+docker-compose ps
+
+# 查看实时日志
+docker-compose logs -f
+
+# 停止服务
+docker-compose down
+```
+
+## CI/CD 部署
+
+项目配置了 GitHub Actions 自动化流水线，支持：
+
+### 自动化流程
+
+1. **代码质量检查**: ESLint 检查和构建测试
+2. **Docker 镜像构建**: 自动构建并推送到 GitHub Container Registry
+3. **安全扫描**: 使用 Trivy 进行容器安全扫描
+4. **自动部署**:
+   - `develop` 分支 → Staging 环境
+   - `main` 分支 → Production 环境
+
+### 镜像仓库
+
+镜像自动发布到 GitHub Container Registry:
+
+- 镜像名称: `ghcr.io/hnrobert/unnc-freshman-verify-gateway`
+- 标签策略:
+  - `latest`: main 分支最新版本
+  - `develop`: develop 分支最新版本
+  - `v1.0.0`: 版本标签（基于 git tag）
+
+### 环境变量配置
+
+在 GitHub Repository Settings → Secrets 中配置：
+
+- `GITHUB_TOKEN`: 自动生成，用于推送镜像
+
+### 部署到服务器
+
+在 CI/CD 配置中的部署步骤，你需要配置：
+
+1. 服务器 SSH 密钥
+2. 服务器地址和用户信息
+3. 部署脚本
+
+例如：
+
+```bash
+# 在服务器上拉取最新镜像并重启服务
+ssh user@your-server "docker pull ghcr.io/hnrobert/unnc-freshman-verify-gateway:latest && docker-compose up -d"
 ```
 
 ## 项目结构

@@ -7,7 +7,14 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "docker:build": "docker build -t unnc-freshman-verify-gateway .",
+    "docker:run": "docker run -p 3000:3000 unnc-freshman-verify-gateway",
+    "docker:dev": "./scripts/dev.sh",
+    "docker:deploy": "./scripts/deploy.sh",
+    "compose:up": "docker-compose up -d",
+    "compose:down": "docker-compose down",
+    "compose:logs": "docker-compose logs -f"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
