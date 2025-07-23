@@ -1,5 +1,5 @@
 {
-  "name": "wechat-group-qrcode",
+  "name": "unnc-freshman-verify-gateway",
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@10.13.1",
