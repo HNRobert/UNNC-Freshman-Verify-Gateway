@@ -132,6 +132,24 @@ jobs:
 
       - name: Deploy to staging with docker-compose
         run: |
+          # 检查宿主机是否设置了用户数据目录环境变量
+          if [ -z "${UNNC_VERIFY_USER_DATA_ROOT}" ]; then
+            echo "❌ UNNC_VERIFY_USER_DATA_ROOT environment variable is not set on the host"
+            echo "Please set it with: export UNNC_VERIFY_USER_DATA_ROOT=/path/to/your/user-data"
+            exit 1
+          fi
+
+          # 检查用户数据目录是否存在
+          if [ ! -d "${UNNC_VERIFY_USER_DATA_ROOT}" ]; then
+            echo "❌ User data directory not found: ${UNNC_VERIFY_USER_DATA_ROOT}"
+            echo "Please ensure the directory exists and contains the required data structure"
+            exit 1
+          fi
+
+          echo "📁 Using user data directory: ${UNNC_VERIFY_USER_DATA_ROOT}"
+          echo "📋 Directory contents:"
+          ls -la "${UNNC_VERIFY_USER_DATA_ROOT}"
+
           # 停止现有的 staging 服务
           docker-compose -f docker-compose.staging.yml down || true
 
@@ -145,8 +163,17 @@ jobs:
           if curl -f http://localhost:3001/api/health; then
             echo "✅ Staging deployment successful!"
             echo "🌐 Application is running on http://localhost:3001"
+            
+            # 显示健康检查详细信息
+            echo "📊 Health check details:"
+            curl -s http://localhost:3001/api/health | jq '.' || curl -s http://localhost:3001/api/health
+            
+            # 检查可用身份
+            echo "🔍 Available identities:"
+            curl -s http://localhost:3001/api/identities | jq '.' || curl -s http://localhost:3001/api/identities
           else
             echo "❌ Health check failed, deployment may have issues"
+            echo "📋 Container logs:"
             docker-compose -f docker-compose.staging.yml logs
             exit 1
           fi
@@ -178,6 +205,22 @@ jobs:
 
       - name: Deploy to production with docker-compose
         run: |
+          # 检查宿主机是否设置了用户数据目录环境变量
+          if [ -z "${UNNC_VERIFY_USER_DATA_ROOT}" ]; then
+            echo "❌ UNNC_VERIFY_USER_DATA_ROOT environment variable is not set on the host"
+            echo "Please set it with: export UNNC_VERIFY_USER_DATA_ROOT=/path/to/your/user-data"
+            exit 1
+          fi
+
+          # 检查用户数据目录是否存在
+          if [ ! -d "${UNNC_VERIFY_USER_DATA_ROOT}" ]; then
+            echo "❌ User data directory not found: ${UNNC_VERIFY_USER_DATA_ROOT}"
+            echo "Please ensure the directory exists and contains the required data structure"
+            exit 1
+          fi
+
+          echo "📁 Using user data directory: ${UNNC_VERIFY_USER_DATA_ROOT}"
+
           # 创建备份（可选）
           if docker ps | grep -q production-app; then
             echo "📦 Creating backup of current production..."
@@ -202,6 +245,7 @@ jobs:
             docker image prune -f
           else
             echo "❌ Health check failed, rolling back..."
+            echo "📋 Container logs:"
             docker-compose -f docker-compose.production.yml logs
             
             # 回滚到备份版本（如果存在）
