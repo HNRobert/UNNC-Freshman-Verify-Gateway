@@ -114,10 +114,10 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
       }
 
       return value;
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     },
-    [locale, translationVersion]
-  ); // Include translationVersion to update when translations change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [locale, translationVersion] // translationVersion ensures callback updates when translations change
+  );
 
   return (
     <I18nContext.Provider

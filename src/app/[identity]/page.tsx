@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useState, useEffect, use } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslation } from "../../components/I18nProvider";
 import axios from "axios";
 import {
@@ -12,19 +12,14 @@ import {
 } from "@heroicons/react/24/outline";
 import LanguageSwitcher from "../../components/LanguageSwitcher";
 
-interface IdentityConfig {
-  groupName: string;
-  title: string;
-  description: string;
-  warningText: string;
-  unableToVerifyMessage: string;
-  favicon?: string;
-}
-
-export default function IdentityVerifyPage() {
+export default function IdentityPage({
+  params,
+}: {
+  params: Promise<{ identity: string }>;
+}) {
   const router = useRouter();
-  const params = useParams();
-  const identity = params.identity as string;
+  const resolvedParams = use(params);
+  const identity = resolvedParams.identity as string;
   const { t, mounted, loadIdentityTranslations, clearIdentityTranslations } =
     useTranslation();
 
@@ -34,9 +29,6 @@ export default function IdentityVerifyPage() {
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [identityConfig, setIdentityConfig] = useState<IdentityConfig | null>(
-    null
-  );
   const [configLoading, setConfigLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
@@ -46,7 +38,6 @@ export default function IdentityVerifyPage() {
         const response = await fetch(`/api/identity/${identity.toLowerCase()}`);
         if (response.ok) {
           const config = await response.json();
-          setIdentityConfig(config);
           // Load identity-specific translations
           if (config.locales) {
             loadIdentityTranslations(config.locales);
@@ -181,14 +172,6 @@ export default function IdentityVerifyPage() {
       "https://github.com/HNRobert/UNNC-Freshman-Verify-Gateway",
       "_blank"
     );
-  };
-
-  const config = identityConfig || {
-    groupName: identity.toUpperCase(),
-    title: "Identity Verification",
-    description: "Please verify your identity to access the group QR code.",
-    warningText: "This verification is required to prevent spam.",
-    unableToVerifyMessage: "If you cannot verify, please contact us.",
   };
 
   return (

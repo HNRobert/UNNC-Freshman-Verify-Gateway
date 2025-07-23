@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
-import path from "path";
 import { getUserDataRoot } from "@/utils/userDataPath";
 
 export async function GET() {
@@ -15,7 +14,7 @@ export async function GET() {
         userDataContents = fs
           .readdirSync(userDataRoot, { withFileTypes: true })
           .map((entry) => `${entry.name}${entry.isDirectory() ? "/" : ""}`);
-      } catch (error) {
+      } catch {
         userDataStatus = "read_error";
       }
     } else {
