@@ -77,11 +77,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Convert image name to lowercase
+        id: image_name
+        run: echo "lowercase=${IMAGE_NAME,,}" >> $GITHUB_OUTPUT
+
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ steps.image_name.outputs.lowercase }}
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -118,9 +122,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Convert image name to lowercase
+        id: image_name
+        run: echo "lowercase=${IMAGE_NAME,,}" >> $GITHUB_OUTPUT
+
       - name: Pull latest image
         run: |
-          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:develop
+          docker pull ${{ env.REGISTRY }}/${{ steps.image_name.outputs.lowercase }}:develop
 
       - name: Deploy to staging with docker-compose
         run: |
@@ -160,16 +168,20 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Convert image name to lowercase
+        id: image_name
+        run: echo "lowercase=${IMAGE_NAME,,}" >> $GITHUB_OUTPUT
+
       - name: Pull latest image
         run: |
-          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main
+          docker pull ${{ env.REGISTRY }}/${{ steps.image_name.outputs.lowercase }}:main
 
       - name: Deploy to production with docker-compose
         run: |
           # 创建备份（可选）
           if docker ps | grep -q production-app; then
             echo "📦 Creating backup of current production..."
-            docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:backup-$(date +%Y%m%d-%H%M%S)
+            docker tag ${{ env.REGISTRY }}/${{ steps.image_name.outputs.lowercase }}:main ${{ env.REGISTRY }}/${{ steps.image_name.outputs.lowercase }}:backup-$(date +%Y%m%d-%H%M%S)
           fi
 
           # 停止现有的 production 服务
