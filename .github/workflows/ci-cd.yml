@@ -110,6 +110,8 @@ jobs:
     runs-on: self-hosted
     needs: [build-and-push]
     if: github.ref == 'refs/heads/develop'
+    env:
+      UNNC_VERIFY_USER_DATA_ROOT: /home/robert/Documents/UNNC_VERIFY_USER_DATA_ROOT
 
     steps:
       - name: Checkout code
@@ -183,6 +185,8 @@ jobs:
     runs-on: self-hosted
     needs: [build-and-push]
     if: github.ref == 'refs/heads/main' || github.event_name == 'release'
+    env:
+      UNNC_VERIFY_USER_DATA_ROOT: /home/robert/Documents/UNNC_VERIFY_USER_DATA_ROOT
 
     steps:
       - name: Checkout code
