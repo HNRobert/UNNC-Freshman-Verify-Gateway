@@ -66,17 +66,12 @@ export default function VerifyPage() {
       params.append("userid", formData.userid);
       params.append("username", formData.username);
 
-      const cookie =
-        "AMCVS_4D6368F454EC41940A4C98A6%40AdobeOrg=1; _gcl_au=1.1.145204148.1747475311; _ga=GA1.1.539725090.1747475312; AMCV_4D6368F454EC41940A4C98A6%40AdobeOrg=-2121179033%7CMCIDTS%7C20226%7CMCMID%7C19596142359291472354115984324568118060%7CMCAAMLH-1748082574%7C3%7CMCAAMB-1748082574%7CRKhpRz8krg2tLO6pguXWp5olkAcUniQYPHaMWWgdJ3xzPWQmdj0y%7CMCOPTOUT-1747484974s%7CNONE%7CMCAID%7CNONE%7CvVersion%7C5.3.0; s_pers=%20v8%3D1747477774243%7C1842085774243%3B%20v8_s%3DMore%2520than%25207%2520days%7C1747479574243%3B%20c19%3Dpr%253Apure%2520portal%253Apersons%253Aview%7C1747479574244%3B%20v68%3D1747477773255%7C1747479574244%3B; s_sess=%20s_cpc%3D0%3B%20c21%3Dchin%2520poo%2520lee%3B%20e13%3Dchin%2520poo%2520lee%253A1%3B%20c13%3Drating-desc%3B%20s_ppvl%3Dpr%25253Apure%252520portal%25253Apublications%25253Aview%252C35%252C35%252C893%252C1274%252C893%252C1512%252C982%252C2%252CP%3B%20s_ppv%3Dpr%25253Apure%252520portal%25253Apublications%25253Aview%252C100%252C35%252C2559%252C1274%252C893%252C1512%252C982%252C2%252CP%3B%20e41%3D1%3B%20s_cc%3Dtrue%3B; _ga_D0L9JPJXFY=GS2.1.s1747900771$o6$g0$t1747900772$j0$l0$h0; CID=BgAAALyG+ymghw6DbQhG6KSkYZU=; PHPSESSID=q392hr54b3iabr7rajp0vs5p0k; TS013cc1fd=010f85e1d816b1696c78c64f1e299c8633d80747b48d24489bc1bb445973251e4d6b10e176d97b7e5cde5a52fc668cb838e1a21c027f81c891fd3ecbcedbe35f704df622e1";
-
       const response = await axios.post(
         "https://cors.ibuduan.com/https://entry.nottingham.edu.cn/result.php",
         params,
         {
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
-            cookie: cookie,
-            Origin: "http://entry.nottingham.edu.cn",
           },
         }
       );
