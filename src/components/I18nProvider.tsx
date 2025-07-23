@@ -1,6 +1,13 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+} from "react";
 import parseYaml from "../plugins/yaml";
 
 // 动态导入 YAML 文件内容
@@ -21,9 +28,13 @@ interface I18nContextType {
   setLocale: (locale: Locale) => void;
   t: (key: TranslationKey, params?: Record<string, string>) => string;
   mounted: boolean;
+  loadIdentityTranslations: (
+    translations: Record<string, Record<string, unknown>>
+  ) => void;
+  clearIdentityTranslations: () => void;
 }
 
-const translations = {
+const defaultTranslations = {
   "zh-CN": zhCN,
   "en-US": enUS,
   "en-UK": enUK,
@@ -34,6 +45,12 @@ const I18nContext = createContext<I18nContextType | undefined>(undefined);
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("zh-CN");
   const [mounted, setMounted] = useState(false);
+  // Use ref to avoid re-renders when translations change
+  const identityTranslationsRef = useRef<Record<
+    string,
+    Record<string, unknown>
+  > | null>(null);
+  const [translationVersion, setTranslationVersion] = useState(0);
 
   useEffect(() => {
     // 标记组件已挂载
@@ -46,41 +63,73 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const setLocale = (newLocale: Locale) => {
+  const setLocale = useCallback((newLocale: Locale) => {
     setLocaleState(newLocale);
     localStorage.setItem("locale", newLocale);
     document.documentElement.lang = newLocale;
-  };
+  }, []);
 
-  const t = (key: TranslationKey, params?: Record<string, string>): string => {
-    const keys = key.split(".");
-    let value: unknown = translations[locale];
+  // Stable functions that don't change on re-renders
+  const loadIdentityTranslations = useCallback(
+    (translations: Record<string, Record<string, unknown>>) => {
+      identityTranslationsRef.current = translations;
+      setTranslationVersion((v) => v + 1); // Force re-render of translations
+    },
+    []
+  );
 
-    for (const k of keys) {
-      if (value && typeof value === "object" && k in value) {
-        value = (value as Record<string, unknown>)[k];
-      } else {
-        value = undefined;
-        break;
+  const clearIdentityTranslations = useCallback(() => {
+    identityTranslationsRef.current = null;
+    setTranslationVersion((v) => v + 1); // Force re-render of translations
+  }, []);
+
+  const t = useCallback(
+    (key: TranslationKey, params?: Record<string, string>): string => {
+      const keys = key.split(".");
+      // Use current translations (identity-specific or default)
+      const currentTranslations =
+        identityTranslationsRef.current || defaultTranslations;
+      let value: unknown = currentTranslations[locale];
+
+      for (const k of keys) {
+        if (value && typeof value === "object" && k in value) {
+          value = (value as Record<string, unknown>)[k];
+        } else {
+          value = undefined;
+          break;
+        }
       }
-    }
 
-    if (typeof value !== "string") {
-      console.warn(`Translation key "${key}" not found for locale "${locale}"`);
-      return key;
-    }
+      if (typeof value !== "string") {
+        console.warn(
+          `Translation key "${key}" not found for locale "${locale}"`
+        );
+        return key;
+      }
 
-    if (params) {
-      return value.replace(/\{(\w+)\}/g, (match: string, param: string) => {
-        return params[param] || match;
-      });
-    }
+      if (params) {
+        return value.replace(/\{(\w+)\}/g, (match: string, param: string) => {
+          return params[param] || match;
+        });
+      }
 
-    return value;
-  };
+      return value;
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    },
+    [locale, translationVersion]
+  ); // Include translationVersion to update when translations change
 
   return (
-    <I18nContext.Provider value={{ locale, setLocale, t, mounted }}>
+    <I18nContext.Provider
+      value={{
+        locale,
+        setLocale,
+        t,
+        mounted,
+        loadIdentityTranslations,
+        clearIdentityTranslations,
+      }}
+    >
       {children}
     </I18nContext.Provider>
   );
@@ -98,6 +147,8 @@ export function useTranslation() {
       changeLanguage: (locale: string) => context.setLocale(locale as Locale),
     },
     mounted: context.mounted,
+    loadIdentityTranslations: context.loadIdentityTranslations,
+    clearIdentityTranslations: context.clearIdentityTranslations,
   };
 }
 

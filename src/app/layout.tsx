@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { I18nProvider } from "../components/I18nProvider";
 import { DynamicMetadata } from "../components/DynamicMetadata";
+import DynamicFavicon from "../components/DynamicFavicon";
 import parseYaml from "../plugins/yaml";
 import type { LocaleData } from "../types/locale";
 
@@ -33,6 +34,7 @@ export default function RootLayout({
       <body className={`${inter.variable} font-sans antialiased`}>
         <I18nProvider>
           <DynamicMetadata />
+          <DynamicFavicon />
           {children}
         </I18nProvider>
       </body>

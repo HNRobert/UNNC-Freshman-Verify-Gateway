@@ -76,11 +76,52 @@ curl --version  # 用于健康检查
 1. 访问 `Settings > Secrets and variables > Actions`
 2. 添加以下 Repository secrets：
 
-```
+```env
 GITHUB_TOKEN  # 已自动提供，用于访问 GHCR
 ```
 
 ### 4. 部署配置
+
+#### 用户数据目录配置
+
+项目现在支持动态身份验证，需要配置用户数据根目录：
+
+```bash
+# 设置环境变量
+export UNNC_VERIFY_USER_DATA_ROOT=/path/to/your/user-data
+
+# 或者在 .env 文件中设置
+echo "UNNC_VERIFY_USER_DATA_ROOT=/path/to/your/user-data" >> .env
+```
+
+#### 用户数据目录结构
+
+用户数据目录应该按以下结构组织：
+
+```text
+user-data/
+├── cpu/
+│   ├── favicon.ico
+│   ├── qrcode.jpg
+│   └── locales/
+│       ├── zh-CN.yml
+│       ├── en-US.yml
+│       └── en-UK.yml
+├── math-club/
+│   ├── favicon.ico
+│   ├── qrcode.jpg
+│   └── locales/
+│       ├── zh-CN.yml
+│       ├── en-US.yml
+│       └── en-UK.yml
+└── ...
+```
+
+每个身份目录必须包含：
+
+- `favicon.ico` - 网站图标
+- `qrcode.jpg` (或其他图片格式) - 群组二维码
+- `locales/` - 语言文件目录
 
 #### 端口配置
 
@@ -89,12 +130,42 @@ GITHUB_TOKEN  # 已自动提供，用于访问 GHCR
 
 #### Docker Compose 文件
 
-项目包含两个 compose 文件：
+项目包含三个 compose 文件：
 
+- `docker-compose.yml` - 开发环境
 - `docker-compose.staging.yml` - 测试环境
 - `docker-compose.production.yml` - 生产环境
 
+所有配置文件都会自动挂载 `UNNC_VERIFY_USER_DATA_ROOT` 环境变量指定的目录。
+
 ### 5. 手动部署
+
+#### 准备用户数据
+
+在部署前，请准备用户数据目录：
+
+```bash
+# 创建用户数据目录
+mkdir -p /path/to/user-data
+
+# 为每个身份创建目录结构（以 cpu 为例）
+mkdir -p /path/to/user-data/cpu/locales
+
+# 复制必要文件
+cp your-favicon.ico /path/to/user-data/cpu/favicon.ico
+cp your-qrcode.jpg /path/to/user-data/cpu/qrcode.jpg
+
+# 创建语言文件（参考 user-data-example/cpu/locales/ 中的示例）
+# 复制并修改示例文件
+```
+
+#### 设置环境变量
+
+```bash
+export UNNC_VERIFY_USER_DATA_ROOT=/path/to/user-data
+```
+
+#### 使用部署脚本
 
 你也可以使用提供的部署脚本进行手动部署：
 

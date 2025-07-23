@@ -11,6 +11,8 @@ services:
       - .:/app
       - /app/node_modules
       - /app/.next
+      - ${UNNC_VERIFY_USER_DATA_ROOT:-./user-data-example}:/app/user-data:ro
     environment:
       - NODE_ENV=development
+      - UNNC_VERIFY_USER_DATA_ROOT=/app/user-data
     restart: unless-stopped

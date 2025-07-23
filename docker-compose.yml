@@ -10,6 +10,9 @@ services:
     environment:
       - NODE_ENV=production
       - NEXT_TELEMETRY_DISABLED=1
+      - UNNC_VERIFY_USER_DATA_ROOT=/app/user-data
+    volumes:
+      - ${UNNC_VERIFY_USER_DATA_ROOT:-./user-data}:/app/user-data:ro
     restart: unless-stopped
     healthcheck:
       test:

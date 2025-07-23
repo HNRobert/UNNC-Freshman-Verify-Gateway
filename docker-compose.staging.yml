@@ -9,6 +9,9 @@ services:
       - "3001:3000"
     environment:
       - NODE_ENV=staging
+      - UNNC_VERIFY_USER_DATA_ROOT=/app/user-data
+    volumes:
+      - ${UNNC_VERIFY_USER_DATA_ROOT:-./user-data}:/app/user-data:ro
     networks:
       - app-network
     labels:

@@ -1,53 +1,70 @@
-# 微信群二维码验证系统
+# UNNC 身份验证门户
 
-这是一个基于 Next.js 和 Tailwind CSS 的微信群二维码验证系统，用于 UNNC 计算机爱好者协会（CPU）招新群的身份验证。
+这是一个基于 Next.js 和 Tailwind CSS 的身份验证门户系统，支持多个组织和群组的二维码验证。系统通过宁波诺丁汉大学官方入学查询接口验证用户身份，为不同的组织提供安全的群组准入控制。
 
-## 功能特性
+## 🌟 功能特性
 
-- 🔐 身份验证：通过身份证号和姓名验证录取状态
-- 📱 响应式设计：支持移动端和桌面端
-- 🎨 现代化 UI：使用 Tailwind CSS 构建的美观界面
-- ⚡ 快速加载：基于 Next.js 的优化性能
-- 🔒 安全性：前端验证，不存储个人信息
-- 🐳 Docker 支持：容器化部署
-- 🚀 CI/CD：自动化构建、测试和部署
+- 🔐 **安全身份验证**：通过身份证号和姓名验证录取状态
+- 🏢 **多身份支持**：支持多个组织/群组的独立验证系统
+- 📱 **响应式设计**：完美支持移动端和桌面端
+- 🎨 **现代化 UI**：使用 Tailwind CSS 构建的美观界面
+- ⚡ **快速加载**：基于 Next.js 的优化性能
+- 🔒 **隐私保护**：纯前端验证，不存储个人信息
+- 🌍 **多语言支持**：支持中文、英文多种语言
+- 🐳 **Docker 支持**：完整的容器化部署方案
+- 🚀 **CI/CD**：自动化构建、测试和部署
 
-## 技术栈
+## 🏗️ 技术栈
 
 - **框架**: Next.js 15.4.3
 - **语言**: TypeScript
 - **样式**: Tailwind CSS 4.x
 - **图标**: Heroicons
 - **HTTP 客户端**: Axios
+- **国际化**: 自定义 i18n 实现
 - **包管理器**: pnpm
 - **容器化**: Docker & Docker Compose
 - **CI/CD**: GitHub Actions
 
-## 快速开始
+## 🚀 快速开始
 
-### 使用 Docker（推荐）
+### 方法一：使用 Docker（推荐）
 
-#### 生产环境
+#### 1. 准备用户数据
 
 ```bash
-# 构建并启动
-./scripts/deploy.sh
+# 创建用户数据目录
+mkdir -p /path/to/user-data/your-organization
 
-# 或者手动运行
+# 创建必要的目录结构
+mkdir -p /path/to/user-data/your-organization/locales
+
+# 添加必要文件
+# - favicon.ico (组织图标)
+# - qrcode.jpg (群组二维码)
+# - locales/ (语言文件)
+```
+
+#### 2. 设置环境变量
+
+```bash
+export UNNC_VERIFY_USER_DATA_ROOT=/path/to/user-data
+```
+
+#### 3. 启动服务
+
+```bash
+# 生产环境
+docker-compose -f docker-compose.production.yml up -d
+
+# 测试环境
+docker-compose -f docker-compose.staging.yml up -d
+
+# 开发环境
 docker-compose up -d
 ```
 
-#### 开发环境
-
-```bash
-# 开发环境
-./scripts/dev.sh
-
-# 或者手动运行
-docker-compose -f docker-compose.dev.yml up -d
-```
-
-### 本地开发
+### 方法二：本地开发
 
 #### 前置要求
 
@@ -58,6 +75,16 @@ docker-compose -f docker-compose.dev.yml up -d
 
 ```bash
 pnpm install
+```
+
+#### 设置环境变量
+
+```bash
+# 复制环境变量模板
+cp .env.example .env
+
+# 编辑 .env 文件，设置用户数据路径
+UNNC_VERIFY_USER_DATA_ROOT=/path/to/your/user-data
 ```
 
 #### 开发服务器
@@ -80,7 +107,70 @@ pnpm build
 pnpm start
 ```
 
-## Docker 命令
+## 📁 用户数据目录结构
+
+系统支持多身份验证，每个身份需要独立的配置目录：
+
+```text
+user-data/
+├── cpu/                    # CPU 组织
+│   ├── favicon.ico         # 网站图标
+│   ├── qrcode.jpg         # 群组二维码
+│   └── locales/           # 语言文件
+│       ├── zh-CN.yml      # 中文
+│       ├── en-US.yml      # 美式英语
+│       └── en-UK.yml      # 英式英语
+├── math-club/             # 数学俱乐部
+│   ├── favicon.ico
+│   ├── qrcode.png
+│   └── locales/
+│       └── ...
+└── debate-society/        # 辩论社
+    └── ...
+```
+
+每个身份目录必须包含：
+
+- `favicon.ico` - 网站图标
+- QR 码图片（文件名包含"qrcode"）
+- `locales/` 目录及语言文件
+
+详细说明请参考 `user-data-example/README.md`。
+
+## 🔧 路由结构
+
+新的路由结构支持多身份：
+
+- `/` - 主页，显示所有可用的身份组织
+- `/[identity]` - 特定身份的验证页面
+- `/[identity]/show` - 验证成功后的二维码显示页面
+
+示例：
+
+- `/cpu` - CPU 组织验证页面
+- `/cpu/show` - CPU 组织二维码页面
+
+## � 从单身份迁移到多身份
+
+如果你已有旧版本的单身份部署，可以使用迁移脚本自动转换：
+
+```bash
+# 运行迁移脚本
+pnpm migrate -d /path/to/user-data -i cpu
+
+# 或直接运行脚本
+./scripts/migrate.sh --user-data-root /path/to/user-data --identity cpu --backup /tmp/backup
+```
+
+迁移脚本会：
+
+1. 创建新的用户数据目录结构
+2. 复制现有的 favicon.ico 和 qrcode.jpg
+3. 复制现有的语言文件
+4. 创建 .env 配置文件
+5. 提供下一步操作指南
+
+## �🛠️ Docker 命令
 
 ### Docker 镜像管理
 
