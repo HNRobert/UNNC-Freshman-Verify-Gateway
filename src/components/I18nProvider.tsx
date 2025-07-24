@@ -65,8 +65,12 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
 
   const setLocale = useCallback((newLocale: Locale) => {
     setLocaleState(newLocale);
-    localStorage.setItem("locale", newLocale);
-    document.documentElement.lang = newLocale;
+    if (typeof window !== "undefined") {
+      localStorage.setItem("locale", newLocale);
+      if (document.documentElement) {
+        document.documentElement.lang = newLocale;
+      }
+    }
   }, []);
 
   // Stable functions that don't change on re-renders
@@ -167,6 +171,8 @@ export const getLocale = () => {
 export const setLocale = (locale: Locale) => {
   if (typeof window !== "undefined") {
     localStorage.setItem("locale", locale);
-    document.documentElement.lang = locale;
+    if (document.documentElement) {
+      document.documentElement.lang = locale;
+    }
   }
 };
