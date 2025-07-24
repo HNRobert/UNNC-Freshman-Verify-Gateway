@@ -3,6 +3,9 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --primary: #fed200;
+  --primary-dark: #d4a500;
+  --primary-light: #fff5a0;
 }
 
 @theme inline {
@@ -23,4 +26,75 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Custom animations and transitions */
+@keyframes pulse-yellow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(254, 210, 0, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(254, 210, 0, 0);
+  }
+}
+
+@keyframes bounce-gentle {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes glow {
+  0% {
+    box-shadow: 0 0 5px rgba(254, 210, 0, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(254, 210, 0, 0.8), 0 0 30px rgba(254, 210, 0, 0.3);
+  }
+  100% {
+    box-shadow: 0 0 5px rgba(254, 210, 0, 0.5);
+  }
+}
+
+.animate-pulse-yellow {
+  animation: pulse-yellow 2s infinite;
+}
+
+.animate-bounce-gentle {
+  animation: bounce-gentle 2s ease-in-out infinite;
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}
+
+/* Hover effects */
+.hover-lift {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.hover-scale {
+  transition: transform 0.2s ease-in-out;
+}
+
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+.hover-glow {
+  transition: all 0.3s ease;
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 20px rgba(254, 210, 0, 0.4);
 }

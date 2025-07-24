@@ -64,9 +64,9 @@ export default function IdentityPage() {
   if (!mounted || configLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center p-4">
-        <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-6">
+        <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-6 hover-lift">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500 mx-auto"></div>
             <p className="mt-2 text-gray-600">Loading...</p>
           </div>
         </div>
@@ -77,8 +77,8 @@ export default function IdentityPage() {
   if (notFound) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center p-4">
-        <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-6 text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+        <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-6 text-center hover-lift">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4 animate-bounce-gentle">
             Identity Not Found
           </h1>
           <p className="text-gray-600 mb-6">
@@ -87,7 +87,7 @@ export default function IdentityPage() {
           </p>
           <button
             onClick={() => router.push("/")}
-            className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700"
+            className="bg-yellow-400 text-white py-2 px-4 rounded-lg hover:bg-yellow-500 hover-scale hover-glow transition-all duration-300 transform"
           >
             Go Back to Home
           </button>
@@ -163,7 +163,7 @@ export default function IdentityPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center p-4">
-      <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-6">
+      <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-6 hover-lift">
         {/* Language Switcher */}
         <div className="flex justify-end mb-4">
           <LanguageSwitcher />
@@ -171,19 +171,19 @@ export default function IdentityPage() {
 
         {/* Header */}
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2 hover-scale">
             {t("verify.groupName")}
           </h1>
-          <h2 className="text-lg text-blue-600 font-semibold">
+          <h2 className="text-lg text-yellow-600 font-semibold animate-pulse">
             {t("verify.title")}
           </h2>
         </div>
 
         {/* Alert */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 hover-glow transition-all duration-300">
           <div className="flex items-start">
-            <InformationCircleIcon className="h-5 w-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" />
-            <div className="text-sm text-blue-800">
+            <InformationCircleIcon className="h-5 w-5 text-yellow-600 mt-0.5 mr-3 flex-shrink-0 animate-bounce-gentle" />
+            <div className="text-sm text-yellow-800">
               <p className="font-medium mb-1">{t("verify.verifyIdentity")}</p>
               <p className="break-words">
                 {t("verify.description", { groupName: t("verify.groupName") })}
@@ -200,10 +200,10 @@ export default function IdentityPage() {
           </div>
 
           <div className="group relative">
-            <button className="text-xs text-blue-600 hover:text-blue-800 underline">
+            <button className="text-xs text-yellow-600 hover:text-yellow-800 underline hover-scale transition-all duration-200">
               {t("verify.unableToVerify")}
             </button>
-            <div className="invisible group-hover:visible absolute bottom-full left-0 mb-2 w-72 max-w-[calc(100vw-2rem)] bg-gray-900 text-white text-xs rounded-lg p-2 z-10 break-words">
+            <div className="invisible group-hover:visible absolute bottom-full left-0 mb-2 w-72 max-w-[calc(100vw-2rem)] bg-gray-900 text-white text-xs rounded-lg p-2 z-10 break-words animate-glow">
               {t("verify.unableToVerifyMessage")}
             </div>
           </div>
@@ -233,8 +233,10 @@ export default function IdentityPage() {
                 type="text"
                 id="userid"
                 maxLength={18}
-                className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 ${
-                  errors.userid ? "border-red-300" : "border-gray-300"
+                className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 text-gray-900 hover-glow transition-all duration-300 ${
+                  errors.userid
+                    ? "border-red-300"
+                    : "border-gray-300 hover:border-yellow-400"
                 }`}
                 placeholder={t("verify.idNumberPlaceholder")}
                 value={formData.userid}
@@ -266,8 +268,10 @@ export default function IdentityPage() {
               <input
                 type="text"
                 id="username"
-                className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 ${
-                  errors.username ? "border-red-300" : "border-gray-300"
+                className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 text-gray-900 hover-glow transition-all duration-300 ${
+                  errors.username
+                    ? "border-red-300"
+                    : "border-gray-300 hover:border-yellow-400"
                 }`}
                 placeholder={t("verify.namePlaceholder")}
                 value={formData.username}
@@ -285,9 +289,16 @@ export default function IdentityPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors"
+            className="w-full bg-yellow-400 text-white py-2 px-4 rounded-lg hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-500 disabled:bg-yellow-300 disabled:cursor-not-allowed transition-all duration-300 hover-scale hover-glow transform active:scale-95"
           >
-            {loading ? t("verify.verifying") : t("verify.submitButton")}
+            {loading ? (
+              <div className="flex items-center justify-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                {t("verify.verifying")}
+              </div>
+            ) : (
+              t("verify.submitButton")
+            )}
           </button>
         </form>
       </div>
@@ -299,7 +310,7 @@ export default function IdentityPage() {
           <span>&gt; {t("verify.openSourceText")}</span>
           <button
             onClick={openExternalLink}
-            className="text-blue-600 hover:text-blue-800 underline"
+            className="text-yellow-600 hover:text-yellow-800 underline hover-scale transition-all duration-200"
           >
             GitHub
           </button>

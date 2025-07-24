@@ -58,7 +58,7 @@ const LanguageSwitcher = () => {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-200"
       >
         <LanguageIcon className="h-4 w-4" />
         <span>{currentLanguage?.name || "Language"}</span>
@@ -66,15 +66,15 @@ const LanguageSwitcher = () => {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+        <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50 hover-lift">
           <div className="py-1">
             {languages.map((language) => (
               <button
                 key={language.code}
                 onClick={() => handleLanguageChange(language.code)}
-                className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 ${
+                className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-all duration-200 ${
                   currentLocale === language.code
-                    ? "bg-blue-50 text-blue-600"
+                    ? "bg-yellow-50 text-yellow-600 font-medium"
                     : "text-gray-700"
                 }`}
               >

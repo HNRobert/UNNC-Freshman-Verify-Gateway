@@ -44,9 +44,9 @@ export default function HomePage() {
   if (!mounted) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center p-4">
-        <div className="w-full max-w-4xl bg-white rounded-lg shadow-lg p-6">
+        <div className="w-full max-w-4xl bg-white rounded-lg shadow-lg p-6 hover-lift">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500 mx-auto"></div>
             <p className="mt-2 text-gray-600">Loading...</p>
           </div>
         </div>
@@ -62,7 +62,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-8 hover-lift">
           <div className="flex justify-between items-start mb-6">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -75,8 +75,8 @@ export default function HomePage() {
 
           {/* Feature Introduction */}
           <div className="grid md:grid-cols-3 gap-6 mb-8">
-            <div className="text-center p-4">
-              <QrCodeIcon className="h-12 w-12 text-blue-600 mx-auto mb-3" />
+            <div className="text-center p-4 hover-lift hover-glow transition-all duration-300">
+              <QrCodeIcon className="h-12 w-12 text-yellow-500 mx-auto mb-3 animate-bounce-gentle" />
               <h3 className="font-semibold text-gray-900 mb-2">
                 {t("homepage.features.qrcode.title")}
               </h3>
@@ -84,8 +84,8 @@ export default function HomePage() {
                 {t("homepage.features.qrcode.description")}
               </p>
             </div>
-            <div className="text-center p-4">
-              <UserGroupIcon className="h-12 w-12 text-green-600 mx-auto mb-3" />
+            <div className="text-center p-4 hover-lift hover-glow transition-all duration-300">
+              <UserGroupIcon className="h-12 w-12 text-green-600 mx-auto mb-3 animate-bounce-gentle" />
               <h3 className="font-semibold text-gray-900 mb-2">
                 {t("homepage.features.identity.title")}
               </h3>
@@ -93,8 +93,8 @@ export default function HomePage() {
                 {t("homepage.features.identity.description")}
               </p>
             </div>
-            <div className="text-center p-4">
-              <InformationCircleIcon className="h-12 w-12 text-purple-600 mx-auto mb-3" />
+            <div className="text-center p-4 hover-lift hover-glow transition-all duration-300">
+              <InformationCircleIcon className="h-12 w-12 text-purple-600 mx-auto mb-3 animate-bounce-gentle" />
               <h3 className="font-semibold text-gray-900 mb-2">
                 {t("homepage.features.secure.title")}
               </h3>
@@ -106,14 +106,14 @@ export default function HomePage() {
         </div>
 
         {/* Available Identities */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="bg-white rounded-lg shadow-lg p-6 hover-lift">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">
             {t("homepage.availableGroups")}
           </h2>
 
           {loading ? (
             <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500 mx-auto"></div>
               <p className="mt-2 text-gray-600">{t("common.loading")}</p>
             </div>
           ) : availableIdentities.length > 0 ? (
@@ -122,15 +122,15 @@ export default function HomePage() {
                 <button
                   key={identity}
                   onClick={() => handleIdentityClick(identity)}
-                  className="p-6 border border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-md transition-all duration-200 text-left group"
+                  className="p-6 border border-gray-200 rounded-lg hover:border-yellow-400 hover:shadow-lg transition-all duration-300 text-left group hover-lift hover-glow transform hover:scale-105"
                 >
                   <div className="flex items-center mb-3">
-                    <ComputerDesktopIcon className="h-8 w-8 text-blue-600 mr-3 group-hover:text-blue-700" />
-                    <h3 className="text-lg font-semibold text-gray-900 uppercase">
+                    <ComputerDesktopIcon className="h-8 w-8 text-yellow-500 mr-3 group-hover:text-yellow-600 transition-colors" />
+                    <h3 className="text-lg font-semibold text-gray-900 uppercase group-hover:text-yellow-700 transition-colors">
                       {identity}
                     </h3>
                   </div>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 group-hover:text-gray-800 transition-colors">
                     {t("homepage.clickToAccess", {
                       identity: identity.toUpperCase(),
                     })}
@@ -139,7 +139,7 @@ export default function HomePage() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-8">
+            <div className="text-center py-8 hover-glow">
               <InformationCircleIcon className="h-12 w-12 text-gray-400 mx-auto mb-3" />
               <p className="text-gray-600">{t("homepage.noGroupsAvailable")}</p>
             </div>

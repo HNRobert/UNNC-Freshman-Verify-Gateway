@@ -102,8 +102,8 @@ export default function IdentityShowCodePage() {
   if (!mounted || isCheckingVerification || !translationsLoaded) {
     return (
       <div className="min-h-screen bg-gray-50 flex justify-center items-center p-4">
-        <div className="text-center bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+        <div className="text-center bg-white rounded-lg shadow-lg p-8 max-w-md w-full hover-lift">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500 mx-auto"></div>
           <p className="mt-2 text-gray-600">Loading...</p>
         </div>
       </div>
@@ -113,8 +113,8 @@ export default function IdentityShowCodePage() {
   if (!isVerified) {
     return (
       <div className="min-h-screen bg-gray-50 flex justify-center items-center p-4">
-        <div className="text-center bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+        <div className="text-center bg-white rounded-lg shadow-lg p-8 max-w-md w-full hover-lift">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500 mx-auto"></div>
           <p className="mt-2 text-gray-600">Redirecting...</p>
         </div>
       </div>
@@ -123,7 +123,7 @@ export default function IdentityShowCodePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex justify-center items-center p-4">
-      <div className="text-center bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
+      <div className="text-center bg-white rounded-lg shadow-lg p-8 max-w-md w-full hover-lift">
         {/* Language Switcher */}
         <div className="flex justify-end mb-4">
           <LanguageSwitcher />
@@ -139,18 +139,20 @@ export default function IdentityShowCodePage() {
         {/* 二维码显示区域 */}
         <div className="mb-6">
           {qrCodeUrl ? (
-            <Image
-              src={qrCodeUrl}
-              alt={`${groupName} QR Code`}
-              width={300}
-              height={300}
-              className="mx-auto rounded-lg shadow-md"
-              priority
-              style={{ width: "auto", height: "auto" }}
-            />
+            <div className="transition-transform duration-300">
+              <Image
+                src={qrCodeUrl}
+                alt={`${groupName} QR Code`}
+                width={300}
+                height={300}
+                className="mx-auto rounded-lg shadow-md"
+                priority
+                style={{ width: "auto", height: "auto" }}
+              />
+            </div>
           ) : (
-            <div className="w-[300px] h-[300px] mx-auto bg-gray-200 rounded-lg shadow-md flex items-center justify-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <div className="w-[300px] h-[300px] mx-auto bg-gray-200 rounded-lg shadow-md flex items-center justify-center hover-glow">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500"></div>
             </div>
           )}
         </div>
@@ -158,7 +160,7 @@ export default function IdentityShowCodePage() {
         {/* 提示文字 */}
         <div className="text-gray-800 text-sm space-y-2">
           {isMobile ? (
-            <p className="text-blue-600 font-medium">
+            <p className="text-yellow-600 font-medium animate-pulse">
               {t("show.mobileInstructions")}
             </p>
           ) : (
@@ -172,7 +174,7 @@ export default function IdentityShowCodePage() {
         <div className="mt-6">
           <button
             onClick={() => router.push("/")}
-            className="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors"
+            className="bg-yellow-400 text-white py-2 px-6 rounded-lg hover:bg-yellow-500 transition-all duration-300 hover-scale hover-glow transform active:scale-95"
           >
             {t("show.backToHome")}
           </button>
