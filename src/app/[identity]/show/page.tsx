@@ -160,11 +160,11 @@ export default function IdentityShowCodePage() {
         {/* 提示文字 */}
         <div className="text-gray-800 text-sm space-y-2">
           {isMobile ? (
-            <p className="text-yellow-600 font-medium animate-pulse">
+            <p className="text-gray-700 font-medium animate-pulse">
               {t("show.mobileInstructions")}
             </p>
           ) : (
-            <p className="text-green-600 font-medium">
+            <p className="text-gray-700 font-medium">
               {t("show.desktopInstructions")}
             </p>
           )}
@@ -174,7 +174,8 @@ export default function IdentityShowCodePage() {
         <div className="mt-6">
           <button
             onClick={() => router.push("/")}
-            className="bg-yellow-400 text-white py-2 px-6 rounded-lg hover:bg-yellow-500 transition-all duration-300 hover-scale hover-glow transform active:scale-95"
+            style={{ backgroundColor: "#fed200" }}
+            className="text-gray-700 py-2 px-6 rounded-lg transition-all duration-300 hover-scale hover-glow transform active:scale-95"
           >
             {t("show.backToHome")}
           </button>

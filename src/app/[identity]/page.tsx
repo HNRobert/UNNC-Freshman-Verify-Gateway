@@ -78,7 +78,7 @@ export default function IdentityPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center p-4">
         <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-6 text-center hover-lift">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4 animate-bounce-gentle">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
             Identity Not Found
           </h1>
           <p className="text-gray-600 mb-6">
@@ -87,7 +87,8 @@ export default function IdentityPage() {
           </p>
           <button
             onClick={() => router.push("/")}
-            className="bg-yellow-400 text-white py-2 px-4 rounded-lg hover:bg-yellow-500 hover-scale hover-glow transition-all duration-300 transform"
+            style={{ backgroundColor: "#fed200" }}
+            className="text-gray-700 py-2 px-4 rounded-lg hover-scale hover-glow transition-all duration-300 transform"
           >
             Go Back to Home
           </button>
@@ -174,7 +175,7 @@ export default function IdentityPage() {
           <h1 className="text-2xl font-bold text-gray-900 mb-2 hover-scale">
             {t("verify.groupName")}
           </h1>
-          <h2 className="text-lg text-yellow-600 font-semibold animate-pulse">
+          <h2 className="text-lg text-yellow-500 font-semibold">
             {t("verify.title")}
           </h2>
         </div>
@@ -289,7 +290,8 @@ export default function IdentityPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-yellow-400 text-white py-2 px-4 rounded-lg hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-500 disabled:bg-yellow-300 disabled:cursor-not-allowed transition-all duration-300 hover-scale hover-glow transform active:scale-95"
+            style={{ backgroundColor: "#fed200" }}
+            className="w-full text-gray-700 py-2 px-4 rounded-lg focus:outline-none focus:ring-2 disabled:cursor-not-allowed transition-all duration-300 hover-scale hover-glow transform active:scale-95"
           >
             {loading ? (
               <div className="flex items-center justify-center">

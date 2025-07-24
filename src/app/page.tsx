@@ -190,7 +190,7 @@ export default function HomePage() {
                       ) : (
                         <ComputerDesktopIcon className="h-8 w-8 text-yellow-500 mr-3 group-hover:text-yellow-600 transition-colors animate-bounce-gentle" />
                       )}
-                      <h3 className="text-lg font-semibold text-gray-900 uppercase group-hover:text-yellow-700 transition-colors">
+                      <h3 className="text-lg font-semibold text-gray-900 uppercase group-hover:text-yellow-500 transition-colors">
                         {config?.groupName || identity}
                       </h3>
                     </div>
