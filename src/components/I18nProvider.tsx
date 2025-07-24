@@ -101,10 +101,10 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (typeof value !== "string") {
-        console.warn(
-          `Translation key "${key}" not found for locale "${locale}"`
-        );
-        return key;
+        // console.warn(
+        //   `Translation key "${key}" not found for locale "${locale}"`
+        // );
+        return "";
       }
 
       if (params) {
