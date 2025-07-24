@@ -80,7 +80,7 @@ export default function DynamicFavicon() {
 
     try {
       // 查找现有的 favicon 链接
-      let faviconLink = document.querySelector(
+      const faviconLink = document.querySelector(
         'link[rel="icon"], link[rel="shortcut icon"]'
       ) as HTMLLinkElement;
 

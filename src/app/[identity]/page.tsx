@@ -41,7 +41,7 @@ export default function IdentityPage() {
         } else if (response.status === 404) {
           setNotFound(true);
         }
-      } catch (error) {
+      } catch {
         // console.error("Failed to load identity config:", error);
         setNotFound(true);
       } finally {

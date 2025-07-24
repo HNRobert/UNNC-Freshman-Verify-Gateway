@@ -65,7 +65,7 @@ export default function IdentityShowCodePage() {
           } else {
             setTranslationsLoaded(true);
           }
-        } catch (error) {
+        } catch {
           setQrCodeUrl("/qrcode.jpg");
           setGroupName(identity.toUpperCase());
           setTranslationsLoaded(true);
