@@ -10,11 +10,21 @@ import {
   ComputerDesktopIcon,
 } from "@heroicons/react/24/outline";
 import LanguageSwitcher from "../components/LanguageSwitcher";
+import Image from "next/image";
+
+interface IdentityConfig {
+  identity: string;
+  groupName: string;
+  faviconUrl: string;
+}
 
 export default function HomePage() {
   const router = useRouter();
   const { t, mounted, clearIdentityTranslations } = useTranslation();
   const [availableIdentities, setAvailableIdentities] = useState<string[]>([]);
+  const [identityConfigs, setIdentityConfigs] = useState<
+    Record<string, IdentityConfig>
+  >({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,6 +38,35 @@ export default function HomePage() {
         if (response.ok) {
           const identities = await response.json();
           setAvailableIdentities(identities);
+
+          // Fetch config for each identity to get favicon URLs
+          const configs: Record<string, IdentityConfig> = {};
+          await Promise.all(
+            identities.map(async (identity: string) => {
+              try {
+                const configResponse = await fetch(
+                  `/api/identity/${identity.toLowerCase()}`
+                );
+                if (configResponse.ok) {
+                  const config = await configResponse.json();
+                  configs[identity] = {
+                    identity,
+                    groupName: config.groupName || identity.toUpperCase(),
+                    faviconUrl: config.faviconUrl,
+                  };
+                }
+              } catch (error) {
+                console.error(`Failed to fetch config for ${identity}:`, error);
+                // Fallback config
+                configs[identity] = {
+                  identity,
+                  groupName: identity.toUpperCase(),
+                  faviconUrl: "/favicon.ico",
+                };
+              }
+            })
+          );
+          setIdentityConfigs(configs);
         }
       } catch (error) {
         console.error("Failed to fetch identities:", error);
@@ -118,25 +157,51 @@ export default function HomePage() {
             </div>
           ) : availableIdentities.length > 0 ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {availableIdentities.map((identity) => (
-                <button
-                  key={identity}
-                  onClick={() => handleIdentityClick(identity)}
-                  className="p-6 border border-gray-200 rounded-lg hover:border-yellow-400 hover:shadow-lg transition-all duration-300 text-left group hover-lift hover-glow transform hover:scale-105"
-                >
-                  <div className="flex items-center mb-3">
-                    <ComputerDesktopIcon className="h-8 w-8 text-yellow-500 mr-3 group-hover:text-yellow-600 transition-colors" />
-                    <h3 className="text-lg font-semibold text-gray-900 uppercase group-hover:text-yellow-700 transition-colors">
-                      {identity}
-                    </h3>
-                  </div>
-                  <p className="text-sm text-gray-600 group-hover:text-gray-800 transition-colors">
-                    {t("homepage.clickToAccess", {
-                      identity: identity.toUpperCase(),
-                    })}
-                  </p>
-                </button>
-              ))}
+              {availableIdentities.map((identity) => {
+                const config = identityConfigs[identity];
+                return (
+                  <button
+                    key={identity}
+                    onClick={() => handleIdentityClick(identity)}
+                    className="p-6 border border-gray-200 rounded-lg hover:border-yellow-400 hover:shadow-lg transition-all duration-300 text-left group hover-lift hover-glow transform hover:scale-105"
+                  >
+                    <div className="flex items-center mb-3">
+                      {config?.faviconUrl ? (
+                        <div className="w-8 h-8 mr-3 relative hover-scale">
+                          <Image
+                            src={config.faviconUrl}
+                            alt={`${config.groupName} favicon`}
+                            width={32}
+                            height={32}
+                            className="rounded transition-all duration-300 group-hover:animate-bounce-gentle"
+                            style={{ width: "auto", height: "auto" }}
+                            onError={(e) => {
+                              // Fallback to ComputerDesktopIcon if favicon fails to load
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = "none";
+                              const parent = target.parentElement;
+                              if (parent) {
+                                parent.innerHTML =
+                                  '<svg class="h-8 w-8 text-yellow-500 transition-colors animate-bounce-gentle" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25" /></svg>';
+                              }
+                            }}
+                          />
+                        </div>
+                      ) : (
+                        <ComputerDesktopIcon className="h-8 w-8 text-yellow-500 mr-3 group-hover:text-yellow-600 transition-colors animate-bounce-gentle" />
+                      )}
+                      <h3 className="text-lg font-semibold text-gray-900 uppercase group-hover:text-yellow-700 transition-colors">
+                        {config?.groupName || identity}
+                      </h3>
+                    </div>
+                    <p className="text-sm text-gray-600 group-hover:text-gray-800 transition-colors">
+                      {t("homepage.clickToAccess", {
+                        identity: config?.groupName || identity.toUpperCase(),
+                      })}
+                    </p>
+                  </button>
+                );
+              })}
             </div>
           ) : (
             <div className="text-center py-8 hover-glow">
