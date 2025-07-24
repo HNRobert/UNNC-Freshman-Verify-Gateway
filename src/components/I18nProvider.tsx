@@ -168,9 +168,5 @@ export const setLocale = (locale: Locale) => {
   if (typeof window !== "undefined") {
     localStorage.setItem("locale", locale);
     document.documentElement.lang = locale;
-    // 不再使用 reload，而是建议使用 Context 中的 changeLanguage
-    console.warn(
-      "建议在组件中使用 useTranslation().i18n.changeLanguage() 而不是 setLocale()"
-    );
   }
 };

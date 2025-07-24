@@ -36,10 +36,12 @@ verify:
   invalidUsage: "非法使用，请退出" # 版权校验失败的提示
   openSourceText: "Open source on" # 开源链接前的文本
 
-# 二维码页面相关文本
-qrcode:
-  mobileInstruction: "请长按识别二维码，请勿截图转发" # 移动端用户看到的提示
-  desktopInstruction: "请使用手机扫描二维码，请勿截图转发" # 桌面端用户看到的提示
+# 展示页面相关文本
+show:
+  successTitle: "验证成功！{groupName}二维码:" # 成功页面标题
+  mobileInstructions: "请长按识别二维码加入群聊，请勿截图转发" # 移动端特定说明
+  desktopInstructions: "请使用手机微信扫描二维码加入群聊，请勿截图转发" # 桌面端特定说明
+  backToHome: "返回首页" # 返回首页按钮文本
 
 # 表单验证相关文本
 validation:

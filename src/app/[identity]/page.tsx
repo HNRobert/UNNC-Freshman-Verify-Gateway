@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
 import { useTranslation } from "../../components/I18nProvider";
 import axios from "axios";
 import {
@@ -12,14 +12,10 @@ import {
 } from "@heroicons/react/24/outline";
 import LanguageSwitcher from "../../components/LanguageSwitcher";
 
-export default function IdentityPage({
-  params,
-}: {
-  params: Promise<{ identity: string }>;
-}) {
+export default function IdentityPage() {
   const router = useRouter();
-  const resolvedParams = use(params);
-  const identity = resolvedParams.identity as string;
+  const params = useParams();
+  const identity = params.identity as string;
   const { t, mounted, loadIdentityTranslations, clearIdentityTranslations } =
     useTranslation();
 
@@ -46,7 +42,7 @@ export default function IdentityPage({
           setNotFound(true);
         }
       } catch (error) {
-        console.error("Failed to load identity config:", error);
+        // console.error("Failed to load identity config:", error);
         setNotFound(true);
       } finally {
         setConfigLoading(false);
@@ -125,30 +121,21 @@ export default function IdentityPage({
     setLoading(true);
 
     try {
-      // 自动进行 URL 编码
-      const params = new URLSearchParams();
-      params.append("userid", formData.userid);
-      params.append("username", formData.username);
+      // 创建 FormData 发送到我们的 API
+      const formDataToSend = new FormData();
+      formDataToSend.append("userid", formData.userid);
+      formDataToSend.append("username", formData.username);
 
-      const response = await axios.post(
-        "https://cors.ibuduan.com/https://entry.nottingham.edu.cn/result.php",
-        params,
-        {
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-        }
-      );
+      const response = await axios.post("/api/verify", formDataToSend, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
-      // 检查返回内容
-      const content = response.data;
-      if (
-        content &&
-        typeof content === "string" &&
-        content.includes("Congratulations!") &&
-        content.includes("专业录取")
-      ) {
-        console.log("验证通过:", content);
+      // 检查返回的 JSON 响应
+      const result = response.data;
+      if (result.success) {
+        // console.log("验证通过:", result.content);
         // 设置验证通过状态到 sessionStorage
         sessionStorage.setItem("verificationPassed", "true");
         sessionStorage.setItem("verificationFrom", "verify");
@@ -307,7 +294,7 @@ export default function IdentityPage({
 
       {/* Copyright */}
       <div className="mt-8 text-center text-xs text-gray-500 space-y-1 px-4 max-w-sm">
-        <div>©2025 HNRobert 2025 | All rights reserved.</div>
+        <div>©2025 HNRobert | All rights reserved.</div>
         <div className="flex items-center justify-center space-x-1 flex-wrap">
           <span>&gt; {t("verify.openSourceText")}</span>
           <button

@@ -17,6 +17,7 @@ export default function IdentityShowCodePage() {
   const [isCheckingVerification, setIsCheckingVerification] = useState(true);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
   const [groupName, setGroupName] = useState<string>("");
+  const [translationsLoaded, setTranslationsLoaded] = useState(false);
 
   useEffect(() => {
     const checkVerification = () => {
@@ -56,12 +57,18 @@ export default function IdentityShowCodePage() {
             // Load identity-specific translations
             if (config.locales) {
               loadIdentityTranslations(config.locales);
+              // Add a small delay to ensure translations are processed
+              setTimeout(() => setTranslationsLoaded(true), 100);
+            } else {
+              setTranslationsLoaded(true);
             }
+          } else {
+            setTranslationsLoaded(true);
           }
         } catch (error) {
-          console.error("Failed to load identity resources:", error);
           setQrCodeUrl("/qrcode.jpg");
           setGroupName(identity.toUpperCase());
+          setTranslationsLoaded(true);
         }
       };
 
@@ -91,8 +98,8 @@ export default function IdentityShowCodePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router, identity]); // Remove callback dependencies
 
-  // 在水合完成前或验证检查期间显示加载状态
-  if (!mounted || isCheckingVerification) {
+  // 在水合完成前或验证检查期间或翻译加载期间显示加载状态
+  if (!mounted || isCheckingVerification || !translationsLoaded) {
     return (
       <div className="min-h-screen bg-gray-50 flex justify-center items-center p-4">
         <div className="text-center bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
@@ -122,35 +129,43 @@ export default function IdentityShowCodePage() {
           <LanguageSwitcher />
         </div>
 
-        {/* 二维码显示区域 */}
-        <div className="mb-6">
-          <Image
-            src={qrCodeUrl}
-            alt={`${groupName} QR Code`}
-            width={300}
-            height={300}
-            className="mx-auto rounded-lg shadow-md"
-            priority
-          />
-        </div>
-
-        {/* 提示文字 */}
+        {/* 标题 */}
         <div className="text-gray-800 space-y-3">
           <h1 className="text-xl font-bold">
             {t("show.successTitle", { groupName })}
           </h1>
-          <div className="text-sm space-y-2">
-            <p>{t("show.instructions")}</p>
-            {isMobile ? (
-              <p className="text-blue-600 font-medium">
-                {t("show.mobileInstructions")}
-              </p>
-            ) : (
-              <p className="text-green-600 font-medium">
-                {t("show.desktopInstructions")}
-              </p>
-            )}
-          </div>
+        </div>
+
+        {/* 二维码显示区域 */}
+        <div className="mb-6">
+          {qrCodeUrl ? (
+            <Image
+              src={qrCodeUrl}
+              alt={`${groupName} QR Code`}
+              width={300}
+              height={300}
+              className="mx-auto rounded-lg shadow-md"
+              priority
+              style={{ width: "auto", height: "auto" }}
+            />
+          ) : (
+            <div className="w-[300px] h-[300px] mx-auto bg-gray-200 rounded-lg shadow-md flex items-center justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          )}
+        </div>
+
+        {/* 提示文字 */}
+        <div className="text-gray-800 text-sm space-y-2">
+          {isMobile ? (
+            <p className="text-blue-600 font-medium">
+              {t("show.mobileInstructions")}
+            </p>
+          ) : (
+            <p className="text-green-600 font-medium">
+              {t("show.desktopInstructions")}
+            </p>
+          )}
         </div>
 
         {/* 返回首页按钮 */}
@@ -161,11 +176,6 @@ export default function IdentityShowCodePage() {
           >
             {t("show.backToHome")}
           </button>
-        </div>
-
-        {/* 注意事项 */}
-        <div className="mt-6 text-xs text-gray-500 bg-gray-50 rounded-lg p-3">
-          <p>{t("show.notice")}</p>
         </div>
       </div>
     </div>

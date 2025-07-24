@@ -36,10 +36,12 @@ verify:
   invalidUsage: "Illegal usage, please exit" # Copyright validation failure message
   openSourceText: "Open source on" # Text before the open source link
 
-# QR code page related texts
-qrcode:
-  mobileInstruction: "Please long press to scan the QR code, do not screenshot and forward" # Instruction for mobile users
-  desktopInstruction: "Please use your mobile phone to scan the QR code, do not screenshot and forward" # Instruction for desktop users
+# Show page related texts
+show:
+  successTitle: "Verification successful! {groupName} QR Code:" # Success page title
+  mobileInstructions: "Please long press to scan the QR code to join the group, do not screenshot and forward" # Mobile-specific instructions
+  desktopInstructions: "Please use your mobile WeChat to scan the QR code to join the group, do not screenshot and forward" # Desktop-specific instructions
+  backToHome: "Back to Home" # Back to home button text
 
 # Form validation related texts
 validation:
