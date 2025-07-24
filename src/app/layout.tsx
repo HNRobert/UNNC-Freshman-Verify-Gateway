@@ -19,9 +19,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: zhCN.metadata.title, // 默认标题，会被动态更新
   description: zhCN.metadata.description, // 默认描述，会被动态更新
-  icons: {
-    icon: "/favicon.ico",
-  },
+  // icons 将由 DynamicFavicon 组件动态管理
 };
 
 export default function RootLayout({
