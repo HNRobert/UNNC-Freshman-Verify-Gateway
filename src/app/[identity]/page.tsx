@@ -186,9 +186,7 @@ export default function IdentityPage() {
             <InformationCircleIcon className="h-5 w-5 text-yellow-600 mt-0.5 mr-3 flex-shrink-0 animate-bounce-gentle" />
             <div className="text-sm text-yellow-800">
               <p className="font-medium mb-1">{t("verify.verifyIdentity")}</p>
-              <p className="break-words">
-                {t("verify.description", { groupName: t("verify.groupName") })}
-              </p>
+              <p className="break-words">{t("verify.description")}</p>
             </div>
           </div>
         </div>

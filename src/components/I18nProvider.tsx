@@ -111,13 +111,44 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
         return "";
       }
 
+      // Enhanced interpolation function
+      let result = value;
+
+      // Handle simple parameter replacements
       if (params) {
-        return value.replace(/\{(\w+)\}/g, (match: string, param: string) => {
-          return params[param] || match;
-        });
+        result = result.replace(
+          /\{(\w+)\}/g,
+          (match: string, param: string) => {
+            return params[param] || match;
+          }
+        );
       }
 
-      return value;
+      // Handle field references like {{verify.groupName}}
+      result = result.replace(
+        /\{\{([^}]+)\}\}/g,
+        (match: string, fieldPath: string) => {
+          const fieldKeys = fieldPath.split(".");
+          let fieldValue: unknown = currentTranslations[locale];
+
+          for (const fieldKey of fieldKeys) {
+            if (
+              fieldValue &&
+              typeof fieldValue === "object" &&
+              fieldKey in fieldValue
+            ) {
+              fieldValue = (fieldValue as Record<string, unknown>)[fieldKey];
+            } else {
+              fieldValue = undefined;
+              break;
+            }
+          }
+
+          return typeof fieldValue === "string" ? fieldValue : match;
+        }
+      );
+
+      return result;
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [locale, translationVersion] // translationVersion ensures callback updates when translations change

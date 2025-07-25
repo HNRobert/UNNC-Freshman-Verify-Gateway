@@ -131,9 +131,7 @@ export default function IdentityShowCodePage() {
 
         {/* 标题 */}
         <div className="text-gray-800 space-y-3">
-          <h1 className="text-xl font-bold">
-            {t("show.successTitle", { groupName })}
-          </h1>
+          <h1 className="text-xl font-bold">{t("show.successTitle")}</h1>
         </div>
 
         {/* 二维码显示区域 */}

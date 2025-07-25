@@ -21,7 +21,7 @@ verify:
   unableToVerifyMessage: '如果无法验证, 请发送邮件到 computerpsychounion@nottingham.edu.cn, 或关注公众号"宁诺CPU"发送你的录取通知, 或联系你身边的CPU成员进群' # 无法验证标签展开后的提示
   title: "二维码获取验证"
   verifyIdentity: "请验证身份"
-  description: "系统将根据您的身份证号和姓名前往entry.nottingham.edu.cn查询录取状态，不会在后台保留您的个人信息(纯前端应用，代码已开源)。验证通过后将展示 {groupName} 的二维码。"
+  description: "系统将根据您的身份证号和姓名前往entry.nottingham.edu.cn查询录取状态，不会在后台保留您的个人信息(纯前端应用，代码已开源)。验证通过后将展示 {{verify.groupName}} 的二维码。"
   warningText: "想进群骚扰大家的代写等商业号太多了，所以出此下策，还请各位理解。"
   unableToVerify: "无法验证? (硕博新生/宁诺老登/校友)"
   idNumber: "身份证号"
@@ -38,7 +38,7 @@ verify:
 
 # 展示页面相关文本
 show:
-  successTitle: "验证成功！{groupName}二维码:" # 成功页面标题
+  successTitle: "验证成功！{{verify.groupName}}二维码:" # 成功页面标题
   mobileInstructions: "请长按识别二维码加入群聊，请勿截图转发" # 移动端特定说明
   desktopInstructions: "请使用手机微信扫描二维码加入群聊，请勿截图转发" # 桌面端特定说明
   backToHome: "返回首页" # 返回首页按钮文本

@@ -21,7 +21,7 @@ verify:
   unableToVerifyMessage: 'If you cannot verify, please send an email to computerpsychounion@nottingham.edu.cn, or follow the WeChat official account "宁诺CPU" and send your admission notice, or contact CPU members around you to join the group' # Unable to verify message when expanded
   title: "QR Code Access Verification"
   verifyIdentity: "Please verify your identity"
-  description: "The system will query your admission status at entry.nottingham.edu.cn based on your ID number and name. No personal information will be retained in the backend (pure frontend application, code is open source). After verification, the QR code for {groupName} will be displayed."
+  description: "The system will query your admission status at entry.nottingham.edu.cn based on your ID number and name. No personal information will be retained in the backend (pure frontend application, code is open source). After verification, the QR code for {{verify.groupName}} will be displayed."
   warningText: "There are too many commercial accounts harassing everyone with ghostwriting services, so we have to resort to this measure. Please understand."
   unableToVerify: "Unable to verify? (Graduate students/Alumni/Current students)"
   idNumber: "ID Number"
@@ -38,7 +38,7 @@ verify:
 
 # Show page related texts
 show:
-  successTitle: "Verification successful! {groupName} QR Code:" # Success page title
+  successTitle: "Verification successful! {{verify.groupName}} QR Code:" # Success page title
   mobileInstructions: "Please long press to scan the QR code to join the group, do not screenshot and forward" # Mobile-specific instructions
   desktopInstructions: "Please use your mobile WeChat to scan the QR code to join the group, do not screenshot and forward" # Desktop-specific instructions
   backToHome: "Back to Home" # Back to home button text
