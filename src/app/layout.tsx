@@ -6,10 +6,15 @@ import { DynamicMetadata } from "../components/DynamicMetadata";
 import DynamicFavicon from "../components/DynamicFavicon";
 import parseYaml from "../plugins/yaml";
 import type { LocaleData } from "../types/locale";
+import { getStaticAvailableLocales, getStaticLocaleTranslations } from "../lib/staticLocales";
 
 // 导入默认语言的 metadata 作为静态 fallback
 import zhCNContent from "../locales/zh-CN.yml";
 const zhCN = parseYaml(zhCNContent) as LocaleData;
+
+// Load static locale data at build time
+const staticAvailableLocales = getStaticAvailableLocales();
+const staticLocaleTranslations = getStaticLocaleTranslations();
 
 const inter = Inter({
   subsets: ["latin"],
@@ -30,7 +35,10 @@ export default function RootLayout({
   return (
     <html lang="zh">
       <body className={`${inter.variable} font-sans antialiased`}>
-        <I18nProvider>
+        <I18nProvider 
+          staticAvailableLocales={staticAvailableLocales}
+          staticLocaleTranslations={staticLocaleTranslations}
+        >
           <DynamicMetadata />
           <DynamicFavicon />
           {children}

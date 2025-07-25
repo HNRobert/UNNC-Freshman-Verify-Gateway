@@ -19,6 +19,7 @@ interface I18nContextType {
   mounted: boolean;
   translationsLoaded: boolean;
   availableLocales: string[];
+  i18n: { language: string };
   loadIdentityTranslations: (
     translations: Record<string, Record<string, unknown>>,
     identityLocales?: string[]
@@ -28,7 +29,17 @@ interface I18nContextType {
 
 const I18nContext = createContext<I18nContextType | undefined>(undefined);
 
-export function I18nProvider({ children }: { children: React.ReactNode }) {
+interface I18nProviderProps {
+  children: React.ReactNode;
+  staticAvailableLocales?: string[];
+  staticLocaleTranslations?: Record<string, Record<string, unknown>>;
+}
+
+export function I18nProvider({ 
+  children, 
+  staticAvailableLocales, 
+  staticLocaleTranslations 
+}: I18nProviderProps) {
   const [locale, setLocaleState] = useState<Locale>("zh-CN");
   const [mounted, setMounted] = useState(false);
   const [availableLocales, setAvailableLocales] = useState<string[]>([]);
@@ -47,10 +58,18 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     string[] | null
   >(null);
 
-  // 动态加载语言包
+  // 加载语言包 - 优先使用静态数据，回退到动态加载
   const loadAvailableLocales = useCallback(async () => {
     try {
-      // 获取可用的语言包
+      // 如果有静态数据，直接使用
+      if (staticAvailableLocales && staticLocaleTranslations) {
+        setAvailableLocales(staticAvailableLocales);
+        setDefaultTranslations(staticLocaleTranslations);
+        setTranslationsLoaded(true);
+        return;
+      }
+
+      // 回退到动态加载
       const response = await fetch("/api/locales");
       if (response.ok) {
         const locales = await response.json();
@@ -81,7 +100,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
       setAvailableLocales(["zh-CN", "en-US", "en-UK"]);
       setTranslationsLoaded(true); // 即使失败也标记为已加载，避免无限等待
     }
-  }, []);
+  }, [staticAvailableLocales, staticLocaleTranslations]);
 
   useEffect(() => {
     // 标记组件已挂载
@@ -269,6 +288,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
         mounted,
         translationsLoaded,
         availableLocales: identityAvailableLocales || availableLocales,
+        i18n: { language: locale },
         loadIdentityTranslations,
         clearIdentityTranslations,
       }}
