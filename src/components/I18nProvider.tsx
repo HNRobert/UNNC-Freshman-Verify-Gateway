@@ -116,10 +116,31 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
       identityTranslationsRef.current = translations;
       if (identityLocales) {
         setIdentityAvailableLocales(identityLocales);
+
+        const currentLocale = locale;
+        const availableLanguages = identityLocales;
+
+        // 检查当前语言是否在身份支持的语言列表中
+        if (!availableLanguages.includes(currentLocale)) {
+          // 当前语言不支持，需要选择合适的语言
+          // 优先选择中文
+          let selectedLanguage: string;
+          if (availableLanguages.includes("zh-CN")) {
+            selectedLanguage = "zh-CN";
+          } else if (availableLanguages.includes("en-US")) {
+            selectedLanguage = "en-US";
+          } else if (availableLanguages.includes("en-UK")) {
+            selectedLanguage = "en-UK";
+          } else {
+            selectedLanguage = availableLanguages[0];
+          }
+
+          setLocale(selectedLanguage);
+        }
       }
       setTranslationVersion((v) => v + 1); // Force re-render of translations
     },
-    []
+    [locale, setLocale]
   );
 
   const clearIdentityTranslations = useCallback(() => {
