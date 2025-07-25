@@ -15,17 +15,36 @@ import Image from "next/image";
 interface IdentityConfig {
   identity: string;
   groupName: string;
+  groupNames?: Record<string, string>; // 添加多语言组名支持
   faviconUrl: string;
 }
 
 export default function HomePage() {
   const router = useRouter();
-  const { t, mounted, clearIdentityTranslations } = useTranslation();
+  const { t, mounted, clearIdentityTranslations, i18n } = useTranslation();
   const [availableIdentities, setAvailableIdentities] = useState<string[]>([]);
   const [identityConfigs, setIdentityConfigs] = useState<
     Record<string, IdentityConfig>
   >({});
   const [loading, setLoading] = useState(true);
+
+  // 根据当前语言获取组名
+  const getLocalizedGroupName = (config: IdentityConfig): string => {
+    const currentLocale = i18n.language;
+
+    // 如果有多语言组名且当前语言存在对应组名，使用它
+    if (config.groupNames && config.groupNames[currentLocale]) {
+      return config.groupNames[currentLocale];
+    }
+
+    // 回退到中文组名
+    if (config.groupNames && config.groupNames["zh-CN"]) {
+      return config.groupNames["zh-CN"];
+    }
+
+    // 最后回退到默认组名
+    return config.groupName || config.identity.toUpperCase();
+  };
 
   useEffect(() => {
     // Clear any existing identity translations when on homepage
@@ -52,6 +71,7 @@ export default function HomePage() {
                   configs[identity] = {
                     identity,
                     groupName: config.groupName || identity.toUpperCase(),
+                    groupNames: config.groupNames, // 保存多语言组名
                     faviconUrl: config.faviconUrl,
                   };
                 }
@@ -170,7 +190,7 @@ export default function HomePage() {
                         <div className="w-8 h-8 mr-3 relative hover-scale">
                           <Image
                             src={config.faviconUrl}
-                            alt={`${config.groupName} favicon`}
+                            alt={`${getLocalizedGroupName(config)} favicon`}
                             width={32}
                             height={32}
                             className="rounded transition-all duration-300 group-hover:animate-bounce-gentle"
@@ -182,21 +202,24 @@ export default function HomePage() {
                               const parent = target.parentElement;
                               if (parent) {
                                 parent.innerHTML =
-                                  '<svg class="h-8 w-8 text-yellow-500 transition-colors animate-bounce-gentle" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25" /></svg>';
+                                  '<svg class="h-8 w-8 text-yellow-500 transition-colors animate-bounce-gentle" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0118.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25" /></svg>';
                               }
                             }}
                           />
                         </div>
                       ) : (
+                        // TODO use default favicon
                         <ComputerDesktopIcon className="h-8 w-8 text-yellow-500 mr-3 group-hover:text-yellow-600 transition-colors animate-bounce-gentle" />
                       )}
                       <h3 className="text-lg font-semibold text-gray-900 uppercase group-hover:text-yellow-500 transition-colors">
-                        {config?.groupName || identity}
+                        {config ? getLocalizedGroupName(config) : identity}
                       </h3>
                     </div>
                     <p className="text-sm text-gray-600 group-hover:text-gray-800 transition-colors">
                       {t("homepage.clickToAccess", {
-                        identity: config?.groupName || identity.toUpperCase(),
+                        identity: config
+                          ? getLocalizedGroupName(config)
+                          : identity.toUpperCase(),
                       })}
                     </p>
                   </button>

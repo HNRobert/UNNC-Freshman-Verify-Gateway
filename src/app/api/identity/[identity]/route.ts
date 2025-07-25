@@ -87,9 +87,23 @@ export async function GET(
       {}) as Record<string, Record<string, string>>;
     const verifyConfig = defaultLocale.verify || {};
 
+    // Extract groupNames from all available locales
+    const groupNames: Record<string, string> = {};
+    Object.keys(locales).forEach((locale) => {
+      const localeData = locales[locale] as Record<
+        string,
+        Record<string, string>
+      >;
+      const localeVerifyConfig = localeData.verify || {};
+      if (localeVerifyConfig.groupName) {
+        groupNames[locale] = localeVerifyConfig.groupName;
+      }
+    });
+
     const config = {
       identity,
       groupName: verifyConfig.groupName || identity.toUpperCase(),
+      groupNames, // 添加所有语言的组名
       title: verifyConfig.title || "Identity Verification",
       description:
         verifyConfig.description ||

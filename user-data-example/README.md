@@ -6,9 +6,9 @@ This directory contains identity-specific resources for the UNNC Identity Verifi
 
 Each identity should have its own subdirectory with the following required files:
 
-```
+```text
 identity-name/
-├── favicon.ico          # Website icon for this identity
+├── favicon.ico         # Website icon for this identity
 ├── qrcode.jpg          # QR code image (can be .jpg, .png, .gif, etc.)
 └── locales/            # Language files directory
     ├── zh-CN.yml       # Chinese (Simplified) translations
@@ -35,11 +35,31 @@ identity-name/
 
 Directory containing language-specific YAML files with translations.
 
-#### Required locale files:
+#### Supported Languages
+
+The system dynamically scans for available language files. You can create any locale files following the `language-COUNTRY` format:
 
 - `zh-CN.yml` - Chinese (Simplified)
+- `zh-TW.yml` - Chinese (Traditional)
 - `en-US.yml` - English (US)
 - `en-UK.yml` - English (UK)
+- `en-GB.yml` - English (GB)
+- `ja-JP.yml` - Japanese
+- `ko-KR.yml` - Korean
+- `fr-FR.yml` - French
+- `de-DE.yml` - German
+- `es-ES.yml` - Spanish
+- `pt-PT.yml` - Portuguese
+- `ru-RU.yml` - Russian
+- `ar-SA.yml` - Arabic
+- `hi-IN.yml` - Hindi
+- `th-TH.yml` - Thai
+- `vi-VN.yml` - Vietnamese
+- `ms-MY.yml` - Malay
+- `id-ID.yml` - Indonesian
+- Or any other locale code you need
+
+**Note:** The system will automatically detect and load any `.yml` or `.yaml` files in the locales directory. You only need to include the languages you want to support for your identity/group.
 
 ## Locale File Structure
 

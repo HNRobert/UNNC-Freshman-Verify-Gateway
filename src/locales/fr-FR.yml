@@ -1,0 +1,28 @@
+# Métadonnées
+metadata:
+  title: "Portail de Vérification d'Identité UNNC"
+  description: "Système de vérification de code QR sécurisé pour l'Université de Nottingham Ningbo Chine"
+
+# Textes communs
+common:
+  loading: "Chargement..."
+  cancel: "Annuler"
+
+# Textes de la page d'accueil
+homepage:
+  title: "Portail de Vérification d'Identité UNNC"
+  description: "Système de vérification de code QR de groupe sécurisé"
+  features:
+    qrcode:
+      title: "Accès Code QR"
+      description: "Obtenez des codes QR de groupe exclusifs après vérification d'identité"
+    identity:
+      title: "Support Multi-Identité"
+      description: "Support de vérification d'identité pour différentes organisations et groupes"
+    secure:
+      title: "Vérification Sécurisée"
+      description: "Vérification d'identité sécurisée basée sur les systèmes officiels de l'université"
+  availableGroups: "Groupes Disponibles"
+  clickToAccess: "Cliquez pour accéder à la vérification de groupe"
+  noGroupsAvailable: "Aucun groupe disponible"
+  footer: "© 2025 HNRobert | Projet Open Source | Pour la Vérification d'Identité Uniquement"

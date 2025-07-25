@@ -34,9 +34,43 @@ export default function IdentityPage() {
         const response = await fetch(`/api/identity/${identity.toLowerCase()}`);
         if (response.ok) {
           const config = await response.json();
+
+          // Load identity-specific locales list
+          const localesResponse = await fetch(
+            `/api/identity/${identity.toLowerCase()}/locales`
+          );
+          let identityLocales: string[] = [];
+          if (localesResponse.ok) {
+            identityLocales = await localesResponse.json();
+          }
+
           // Load identity-specific translations
-          if (config.locales) {
-            loadIdentityTranslations(config.locales);
+          if (identityLocales.length > 0) {
+            const translations: Record<string, Record<string, unknown>> = {};
+            await Promise.all(
+              identityLocales.map(async (locale: string) => {
+                try {
+                  const localeResponse = await fetch(
+                    `/api/identity/${identity.toLowerCase()}/locales/${locale}`
+                  );
+                  if (localeResponse.ok) {
+                    const translation = await localeResponse.json();
+                    translations[locale] = translation;
+                  }
+                } catch (error) {
+                  console.error(
+                    `Failed to load identity locale ${locale}:`,
+                    error
+                  );
+                }
+              })
+            );
+            loadIdentityTranslations(translations, identityLocales);
+          } else {
+            // If no identity-specific locales, use config.locales as fallback
+            if (config.locales) {
+              loadIdentityTranslations(config.locales);
+            }
           }
         } else if (response.status === 404) {
           setNotFound(true);

@@ -1,0 +1,28 @@
+# メタデータ
+metadata:
+  title: "UNNC 身元確認ポータル"
+  description: "ノッティンガム大学寧波校の安全なグループQRコード確認システム"
+
+# 共通テキスト
+common:
+  loading: "読み込み中..."
+  cancel: "キャンセル"
+
+# ホームページテキスト
+homepage:
+  title: "UNNC 身元確認ポータル"
+  description: "安全なグループQRコード確認システム"
+  features:
+    qrcode:
+      title: "QRコードアクセス"
+      description: "身元確認後に専用グループQRコードを取得"
+    identity:
+      title: "複数身元サポート"
+      description: "さまざまな組織やグループの身元確認をサポート"
+    secure:
+      title: "安全な確認"
+      description: "大学公式システムに基づく安全な身元確認"
+  availableGroups: "利用可能なグループ"
+  clickToAccess: "グループ確認にアクセスするにはクリック"
+  noGroupsAvailable: "利用可能なグループがありません"
+  footer: "© 2025 HNRobert | オープンソースプロジェクト | 身元確認専用"

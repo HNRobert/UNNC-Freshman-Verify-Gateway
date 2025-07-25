@@ -4,20 +4,49 @@ import { useState, useEffect, useRef } from "react";
 import { ChevronDownIcon, LanguageIcon } from "@heroicons/react/24/outline";
 import { useTranslation } from "./I18nProvider";
 
+// 语言显示名称映射
+const LANGUAGE_NAMES: Record<string, { name: string; englishName: string }> = {
+  "zh-CN": { name: "中文", englishName: "Chinese (Simplified)" },
+  "zh-TW": { name: "繁體中文", englishName: "Chinese (Traditional)" },
+  "en-US": { name: "English (US)", englishName: "English (US)" },
+  "en-UK": { name: "English (UK)", englishName: "English (UK)" },
+  "en-GB": { name: "English (GB)", englishName: "English (GB)" },
+  "ja-JP": { name: "日本語", englishName: "Japanese" },
+  "ko-KR": { name: "한국어", englishName: "Korean" },
+  "fr-FR": { name: "Français", englishName: "French" },
+  "de-DE": { name: "Deutsch", englishName: "German" },
+  "es-ES": { name: "Español", englishName: "Spanish" },
+  "pt-PT": { name: "Português", englishName: "Portuguese" },
+  "ru-RU": { name: "Русский", englishName: "Russian" },
+  "ar-SA": { name: "العربية", englishName: "Arabic" },
+  "hi-IN": { name: "हिन्दी", englishName: "Hindi" },
+  "th-TH": { name: "ไทย", englishName: "Thai" },
+  "vi-VN": { name: "Tiếng Việt", englishName: "Vietnamese" },
+  "ms-MY": { name: "Bahasa Melayu", englishName: "Malay" },
+  "id-ID": { name: "Bahasa Indonesia", englishName: "Indonesian" },
+};
+
 const LanguageSwitcher = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { i18n, mounted } = useTranslation();
+  const { i18n, mounted, availableLocales } = useTranslation();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const languages = [
-    { code: "zh-CN", name: "中文", englishName: "Chinese" },
-    { code: "en-US", name: "English (US)", englishName: "English (US)" },
-    { code: "en-UK", name: "English (UK)", englishName: "English (UK)" },
-  ];
+  // 生成语言选项
+  const languages = availableLocales.map((code) => ({
+    code,
+    name: LANGUAGE_NAMES[code]?.name || code,
+    englishName: LANGUAGE_NAMES[code]?.englishName || code,
+  }));
 
   // 在水合完成前，始终显示中文以避免不匹配
   const currentLocale = mounted ? i18n.language : "zh-CN";
-  const currentLanguage = languages.find((lang) => lang.code === currentLocale);
+  const currentLanguage = languages.find(
+    (lang) => lang.code === currentLocale
+  ) || {
+    code: currentLocale,
+    name: LANGUAGE_NAMES[currentLocale]?.name || currentLocale,
+    englishName: LANGUAGE_NAMES[currentLocale]?.englishName || currentLocale,
+  };
 
   // 处理点击外部区域关闭下拉菜单
   useEffect(() => {

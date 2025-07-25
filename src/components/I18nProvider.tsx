@@ -8,19 +8,8 @@ import {
   useRef,
   useCallback,
 } from "react";
-import parseYaml from "../plugins/yaml";
 
-// 动态导入 YAML 文件内容
-import zhCNContent from "../locales/zh-CN.yml";
-import enUSContent from "../locales/en-US.yml";
-import enUKContent from "../locales/en-UK.yml";
-
-// 解析 YAML 内容
-const zhCN = parseYaml(zhCNContent);
-const enUS = parseYaml(enUSContent);
-const enUK = parseYaml(enUKContent);
-
-type Locale = "zh-CN" | "en-US" | "en-UK";
+type Locale = string; // 改为字符串类型以支持动态语言
 type TranslationKey = string;
 
 interface I18nContextType {
@@ -28,40 +17,85 @@ interface I18nContextType {
   setLocale: (locale: Locale) => void;
   t: (key: TranslationKey, params?: Record<string, string>) => string;
   mounted: boolean;
+  translationsLoaded: boolean;
+  availableLocales: string[];
   loadIdentityTranslations: (
-    translations: Record<string, Record<string, unknown>>
+    translations: Record<string, Record<string, unknown>>,
+    identityLocales?: string[]
   ) => void;
   clearIdentityTranslations: () => void;
 }
-
-const defaultTranslations = {
-  "zh-CN": zhCN,
-  "en-US": enUS,
-  "en-UK": enUK,
-};
 
 const I18nContext = createContext<I18nContextType | undefined>(undefined);
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("zh-CN");
   const [mounted, setMounted] = useState(false);
+  const [availableLocales, setAvailableLocales] = useState<string[]>([]);
+  const [defaultTranslations, setDefaultTranslations] = useState<
+    Record<string, Record<string, unknown>>
+  >({});
+  const [translationsLoaded, setTranslationsLoaded] = useState(false);
   // Use ref to avoid re-renders when translations change
   const identityTranslationsRef = useRef<Record<
     string,
     Record<string, unknown>
   > | null>(null);
   const [translationVersion, setTranslationVersion] = useState(0);
+  // Store identity-specific available locales
+  const [identityAvailableLocales, setIdentityAvailableLocales] = useState<
+    string[] | null
+  >(null);
+
+  // 动态加载语言包
+  const loadAvailableLocales = useCallback(async () => {
+    try {
+      // 获取可用的语言包
+      const response = await fetch("/api/locales");
+      if (response.ok) {
+        const locales = await response.json();
+        setAvailableLocales(locales);
+
+        // 加载所有语言包的翻译
+        const translations: Record<string, Record<string, unknown>> = {};
+        await Promise.all(
+          locales.map(async (locale: string) => {
+            try {
+              const localeResponse = await fetch(`/api/locales/${locale}`);
+              if (localeResponse.ok) {
+                const translation = await localeResponse.json();
+                translations[locale] = translation;
+              }
+            } catch (error) {
+              console.error(`Failed to load locale ${locale}:`, error);
+            }
+          })
+        );
+
+        setDefaultTranslations(translations);
+        setTranslationsLoaded(true); // 标记翻译已加载
+      }
+    } catch (error) {
+      console.error("Failed to load available locales:", error);
+      // 回退到默认设置
+      setAvailableLocales(["zh-CN", "en-US", "en-UK"]);
+      setTranslationsLoaded(true); // 即使失败也标记为已加载，避免无限等待
+    }
+  }, []);
 
   useEffect(() => {
     // 标记组件已挂载
     setMounted(true);
 
+    // 加载可用语言
+    loadAvailableLocales();
+
     // 获取用户首选语言
     const savedLocale = localStorage.getItem("locale");
-    if (savedLocale && ["zh-CN", "en-US", "en-UK"].includes(savedLocale)) {
-      setLocaleState(savedLocale as Locale);
+    if (savedLocale) {
+      setLocaleState(savedLocale);
     }
-  }, []);
+  }, [loadAvailableLocales]);
 
   const setLocale = useCallback((newLocale: Locale) => {
     setLocaleState(newLocale);
@@ -75,8 +109,14 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
 
   // Stable functions that don't change on re-renders
   const loadIdentityTranslations = useCallback(
-    (translations: Record<string, Record<string, unknown>>) => {
+    (
+      translations: Record<string, Record<string, unknown>>,
+      identityLocales?: string[]
+    ) => {
       identityTranslationsRef.current = translations;
+      if (identityLocales) {
+        setIdentityAvailableLocales(identityLocales);
+      }
       setTranslationVersion((v) => v + 1); // Force re-render of translations
     },
     []
@@ -84,6 +124,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
 
   const clearIdentityTranslations = useCallback(() => {
     identityTranslationsRef.current = null;
+    setIdentityAvailableLocales(null);
     setTranslationVersion((v) => v + 1); // Force re-render of translations
   }, []);
 
@@ -105,10 +146,54 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (typeof value !== "string") {
-        // console.warn(
-        //   `Translation key "${key}" not found for locale "${locale}"`
-        // );
-        return "";
+        // 如果当前语言没找到，尝试回退到中文
+        if (locale !== "zh-CN" && currentTranslations["zh-CN"]) {
+          let fallbackValue: unknown = currentTranslations["zh-CN"];
+          for (const k of keys) {
+            if (
+              fallbackValue &&
+              typeof fallbackValue === "object" &&
+              k in fallbackValue
+            ) {
+              fallbackValue = (fallbackValue as Record<string, unknown>)[k];
+            } else {
+              fallbackValue = undefined;
+              break;
+            }
+          }
+          if (typeof fallbackValue === "string") {
+            value = fallbackValue;
+          }
+        }
+
+        // 如果还是没找到，尝试英文作为最后的回退
+        if (
+          typeof value !== "string" &&
+          locale !== "en-US" &&
+          currentTranslations["en-US"]
+        ) {
+          let fallbackValue: unknown = currentTranslations["en-US"];
+          for (const k of keys) {
+            if (
+              fallbackValue &&
+              typeof fallbackValue === "object" &&
+              k in fallbackValue
+            ) {
+              fallbackValue = (fallbackValue as Record<string, unknown>)[k];
+            } else {
+              fallbackValue = undefined;
+              break;
+            }
+          }
+          if (typeof fallbackValue === "string") {
+            value = fallbackValue;
+          }
+        }
+
+        // 如果所有回退都失败，返回键名作为最后的备用显示
+        if (typeof value !== "string") {
+          return "";
+        }
       }
 
       // Enhanced interpolation function
@@ -151,7 +236,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
       return result;
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [locale, translationVersion] // translationVersion ensures callback updates when translations change
+    [locale, translationVersion, defaultTranslations] // 添加 defaultTranslations 以确保翻译加载后触发更新
   );
 
   return (
@@ -161,6 +246,8 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
         setLocale,
         t,
         mounted,
+        translationsLoaded,
+        availableLocales: identityAvailableLocales || availableLocales,
         loadIdentityTranslations,
         clearIdentityTranslations,
       }}
@@ -179,16 +266,17 @@ export function useTranslation() {
     t: context.t,
     i18n: {
       language: context.locale,
-      changeLanguage: (locale: string) => context.setLocale(locale as Locale),
+      changeLanguage: (locale: string) => context.setLocale(locale),
     },
     mounted: context.mounted,
+    translationsLoaded: context.translationsLoaded,
+    availableLocales: context.availableLocales,
     loadIdentityTranslations: context.loadIdentityTranslations,
     clearIdentityTranslations: context.clearIdentityTranslations,
   };
 }
 
 export { type Locale };
-export const SUPPORT_LOCALES: Locale[] = ["zh-CN", "en-US", "en-UK"];
 
 // 简单的工具函数，仅用于静态获取，不建议在组件中使用
 export const getLocale = () => {
