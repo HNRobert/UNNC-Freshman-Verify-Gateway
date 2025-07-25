@@ -47,7 +47,8 @@ export async function GET(
       file.toLowerCase().includes("favicon")
     );
 
-    if (!hasLocales || !qrCodeFile || !faviconFile) {
+    // Only require locales and QR code, favicon is optional
+    if (!hasLocales || !qrCodeFile) {
       return NextResponse.json(
         { error: "Identity missing required files" },
         { status: 404 }
@@ -79,7 +80,9 @@ export async function GET(
 
     // Construct URLs for assets
     const qrCodeUrl = `/api/identity/${identity}/assets/${qrCodeFile}`;
-    const faviconUrl = `/api/identity/${identity}/assets/${faviconFile}`;
+    const faviconUrl = faviconFile
+      ? `/api/identity/${identity}/assets/${faviconFile}`
+      : undefined; // Use undefined if no favicon file found
 
     // Extract basic config from default locale (zh-CN or first available)
     const defaultLocale = (locales["zh-CN"] ||
@@ -115,7 +118,7 @@ export async function GET(
         verifyConfig.unableToVerifyMessage ||
         "If you cannot verify, please contact us.",
       qrCodeUrl,
-      faviconUrl,
+      ...(faviconUrl && { faviconUrl }), // Only include faviconUrl if it exists
       locales,
     };
 

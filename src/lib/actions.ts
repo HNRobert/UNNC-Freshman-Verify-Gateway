@@ -17,7 +17,7 @@ export interface IdentityConfig {
   warningText: string;
   unableToVerifyMessage: string;
   qrCodeUrl: string;
-  faviconUrl: string;
+  faviconUrl?: string;
   locales: Record<string, Record<string, unknown>>;
 }
 
@@ -25,7 +25,7 @@ export interface IdentityListItem {
   identity: string;
   groupName: string;
   groupNames?: Record<string, string>;
-  faviconUrl: string;
+  faviconUrl?: string; // Made optional
 }
 
 // Server action to get all available identities
@@ -46,7 +46,7 @@ export const getAvailableIdentities = withPerformanceTracking(
     };
 
     const result = await loadAvailableIdentities();
-    
+
     // Cache the result for 5 minutes with refresh function
     cache.set(cacheKey, result, 5 * 60 * 1000, refreshFunction);
 
@@ -74,11 +74,9 @@ async function loadAvailableIdentities(): Promise<IdentityListItem[]> {
         const hasQrCode = fs
           .readdirSync(identityPath)
           .some((file) => file.toLowerCase().includes("qrcode"));
-        const hasFavicon = fs
-          .readdirSync(identityPath)
-          .some((file) => file.toLowerCase().includes("favicon"));
 
-        return hasLocales && hasQrCode && hasFavicon;
+        // Only require locales and QR code, favicon is optional
+        return hasLocales && hasQrCode;
       });
 
     // Get detailed config for each identity
@@ -92,7 +90,7 @@ async function loadAvailableIdentities(): Promise<IdentityListItem[]> {
             identity: config.identity,
             groupName: config.groupName,
             groupNames: config.groupNames,
-            faviconUrl: config.faviconUrl,
+            ...(config.faviconUrl && { faviconUrl: config.faviconUrl }), // Only include if exists
           });
         }
       } catch (error) {
@@ -101,7 +99,7 @@ async function loadAvailableIdentities(): Promise<IdentityListItem[]> {
         identityConfigs.push({
           identity,
           groupName: identity.toUpperCase(),
-          faviconUrl: "/favicon.ico",
+          // No faviconUrl - will use default
         });
       }
     }
@@ -142,7 +140,9 @@ export const getIdentityConfig = withPerformanceTracking(
 );
 
 // Extract the core logic to a separate function for reuse
-async function loadIdentityConfig(identity: string): Promise<IdentityConfig | null> {
+async function loadIdentityConfig(
+  identity: string
+): Promise<IdentityConfig | null> {
   try {
     const normalizedIdentity = identity.toLowerCase();
     const userDataRoot = getUserDataRoot();
@@ -167,7 +167,8 @@ async function loadIdentityConfig(identity: string): Promise<IdentityConfig | nu
       file.toLowerCase().includes("favicon")
     );
 
-    if (!hasLocales || !qrCodeFile || !faviconFile) {
+    // Only require locales and QR code, favicon is optional
+    if (!hasLocales || !qrCodeFile) {
       return null;
     }
 
@@ -178,10 +179,7 @@ async function loadIdentityConfig(identity: string): Promise<IdentityConfig | nu
 
     for (const localeFile of localeFiles) {
       if (localeFile.endsWith(".yml") || localeFile.endsWith(".yaml")) {
-        const localeName = path.basename(
-          localeFile,
-          path.extname(localeFile)
-        );
+        const localeName = path.basename(localeFile, path.extname(localeFile));
         const localeContent = fs.readFileSync(
           path.join(localesPath, localeFile),
           "utf-8"
@@ -199,7 +197,9 @@ async function loadIdentityConfig(identity: string): Promise<IdentityConfig | nu
 
     // Construct URLs for assets
     const qrCodeUrl = `/api/identity/${normalizedIdentity}/assets/${qrCodeFile}`;
-    const faviconUrl = `/api/identity/${normalizedIdentity}/assets/${faviconFile}`;
+    const faviconUrl = faviconFile
+      ? `/api/identity/${normalizedIdentity}/assets/${faviconFile}`
+      : undefined; // Use undefined if no favicon file found
 
     // Extract basic config from default locale (zh-CN or first available)
     const defaultLocale = (locales["zh-CN"] ||
@@ -235,7 +235,7 @@ async function loadIdentityConfig(identity: string): Promise<IdentityConfig | nu
         verifyConfig.unableToVerifyMessage ||
         "If you cannot verify, please contact us.",
       qrCodeUrl,
-      faviconUrl,
+      ...(faviconUrl && { faviconUrl }), // Only include faviconUrl if it exists
       locales,
     };
 

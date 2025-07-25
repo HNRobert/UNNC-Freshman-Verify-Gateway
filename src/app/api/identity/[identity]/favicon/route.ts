@@ -45,6 +45,21 @@ export async function GET(
     );
 
     if (!faviconFile) {
+      // Fallback to default favicon if identity doesn't have one
+      const defaultFaviconPath = path.join(
+        process.cwd(),
+        "public",
+        "favicon.ico"
+      );
+      if (fs.existsSync(defaultFaviconPath)) {
+        const fileBuffer = fs.readFileSync(defaultFaviconPath);
+        return new NextResponse(fileBuffer, {
+          headers: {
+            "Content-Type": "image/x-icon",
+            "Cache-Control": "public, max-age=86400",
+          },
+        });
+      }
       return NextResponse.json(
         { error: "Favicon not found for identity" },
         { status: 404 }

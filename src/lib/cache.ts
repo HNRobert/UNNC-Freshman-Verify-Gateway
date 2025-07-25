@@ -13,7 +13,12 @@ class MemoryCache {
   private defaultTTL = 5 * 60 * 1000; // 5 minutes default TTL
   private refreshInterval: NodeJS.Timeout | null = null;
 
-  set<T>(key: string, data: T, ttl?: number, refreshFunction?: () => Promise<T>): void {
+  set<T>(
+    key: string,
+    data: T,
+    ttl?: number,
+    refreshFunction?: () => Promise<T>
+  ): void {
     this.cache.set(key, {
       data,
       timestamp: Date.now(),
@@ -79,7 +84,7 @@ class MemoryCache {
 
     for (const [key, entry] of this.cache.entries()) {
       const age = now - entry.timestamp;
-      const shouldRefresh = 
+      const shouldRefresh =
         age > entry.ttl * 0.8 || // Refresh when 80% of TTL has passed
         (age > entry.ttl && entry.refreshFunction); // Refresh expired entries with refresh function
 
@@ -91,7 +96,10 @@ class MemoryCache {
     await Promise.allSettled(refreshPromises);
   }
 
-  private async refreshEntry(key: string, entry: CacheEntry<unknown>): Promise<void> {
+  private async refreshEntry(
+    key: string,
+    entry: CacheEntry<unknown>
+  ): Promise<void> {
     try {
       if (entry.refreshFunction) {
         const newData = await entry.refreshFunction();
@@ -101,7 +109,6 @@ class MemoryCache {
           ttl: entry.ttl,
           refreshFunction: entry.refreshFunction,
         });
-        console.log(`Cache refreshed for key: ${key}`);
       }
     } catch (error) {
       console.error(`Failed to refresh cache for key ${key}:`, error);
@@ -110,7 +117,8 @@ class MemoryCache {
   }
 
   // Start automatic refresh interval
-  startAutoRefresh(intervalMs: number = 2 * 60 * 1000): void { // Default: 2 minutes
+  startAutoRefresh(intervalMs: number = 2 * 60 * 1000): void {
+    // Default: 2 minutes
     if (this.refreshInterval) {
       clearInterval(this.refreshInterval);
     }
@@ -120,7 +128,7 @@ class MemoryCache {
         await this.refreshCache();
         this.cleanup(); // Also cleanup expired entries
       } catch (error) {
-        console.error('Error during cache refresh:', error);
+        console.error("Error during cache refresh:", error);
       }
     }, intervalMs);
   }

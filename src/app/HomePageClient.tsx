@@ -7,7 +7,6 @@ import {
   InformationCircleIcon,
   QrCodeIcon,
   UserGroupIcon,
-  ComputerDesktopIcon,
 } from "@heroicons/react/24/outline";
 import LanguageSwitcher from "../components/LanguageSwitcher";
 import Image from "next/image";
@@ -153,7 +152,26 @@ export default function HomePageClient({
                           />
                         </div>
                       ) : (
-                        <ComputerDesktopIcon className="h-6 w-6 sm:h-8 sm:w-8 text-yellow-500 mr-2 sm:mr-3 group-hover:text-yellow-600 transition-colors animate-bounce-gentle flex-shrink-0" />
+                        <div className="w-6 h-6 sm:w-8 sm:h-8 mr-2 sm:mr-3 relative hover-scale flex-shrink-0">
+                          <Image
+                            src="/favicon.ico"
+                            alt="Default favicon"
+                            width={32}
+                            height={32}
+                            className="rounded transition-all duration-300 group-hover:animate-bounce-gentle"
+                            style={{ width: "auto", height: "auto" }}
+                            onError={(e) => {
+                              // Fallback to ComputerDesktopIcon if default favicon fails to load
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = "none";
+                              const parent = target.parentElement;
+                              if (parent) {
+                                parent.innerHTML =
+                                  '<svg class="h-6 w-6 sm:h-8 sm:w-8 text-yellow-500 transition-colors animate-bounce-gentle" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0118.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25" /></svg>';
+                              }
+                            }}
+                          />
+                        </div>
                       )}
                       <h3 className="text-base sm:text-lg font-semibold text-gray-900 uppercase group-hover:text-yellow-500 transition-colors leading-tight break-words">
                         {getLocalizedGroupName(config)}
