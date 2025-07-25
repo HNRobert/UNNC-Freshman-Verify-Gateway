@@ -232,14 +232,36 @@ export default function IdentityPage() {
             <span className="break-words">{t("verify.warningText")}</span>
           </div>
 
-          <div className="group relative">
-            <button className="text-xs text-yellow-600 hover:text-yellow-800 underline hover-scale transition-all duration-200">
+            <div className="group relative">
+              <button
+              className="text-xs text-yellow-600 hover:text-yellow-800 underline hover-scale transition-all duration-200"
+              onClick={(e) => {
+                e.stopPropagation();
+                const tooltip = document.querySelector('.tooltip-mobile');
+                tooltip?.classList.toggle('visible');
+
+                const handleClick = (event: MouseEvent) => {
+                if (
+                  tooltip &&
+                  !tooltip.contains(event.target as Node) &&
+                  !(e.target as Node).contains(event.target as Node)
+                ) {
+                  tooltip.classList.remove('visible');
+                  document.removeEventListener('click', handleClick);
+                }
+                };
+                document.addEventListener('click', handleClick);
+              }}
+              >
               {t("verify.unableToVerify")}
-            </button>
-            <div className="invisible group-hover:visible absolute bottom-full left-0 mb-2 w-72 max-w-[calc(100vw-2rem)] bg-gray-900 text-white text-xs rounded-lg p-2 z-10 break-words animate-glow">
+              </button>
+              <div
+              className="tooltip-mobile invisible group-hover:visible md:group-hover:visible absolute bottom-full left-0 mb-2 w-72 max-w-[calc(100vw-2rem)] bg-gray-900 text-white text-xs rounded-lg p-2 z-10 break-words animate-glow md:invisible"
+              onClick={(e) => e.stopPropagation()}
+              >
               {t("verify.unableToVerifyMessage")}
+              </div>
             </div>
-          </div>
         </div>
 
         {/* Form */}
