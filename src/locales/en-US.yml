@@ -1,0 +1,28 @@
+# Metadata
+metadata:
+  title: "UNNC Identity Verification Portal"
+  description: "Secure group QR code verification system for University of Nottingham Ningbo China"
+
+# Common texts
+common:
+  loading: "Loading..."
+  cancel: "Cancel"
+
+# Homepage texts
+homepage:
+  title: "UNNC Identity Verification Portal"
+  description: "Secure group QR code verification system"
+  features:
+    qrcode:
+      title: "QR Code Access"
+      description: "Get exclusive group QR codes after identity verification"
+    identity:
+      title: "Multi-Identity Support"
+      description: "Support identity verification for different organizations and groups"
+    secure:
+      title: "Secure Verification"
+      description: "Secure identity verification based on official university systems"
+  availableGroups: "Available Groups"
+  clickToAccess: "Click to access {identity} group verification"
+  noGroupsAvailable: "No groups available"
+  footer: "© 2025 HNRobert | Open Source Project | For Identity Verification Only"

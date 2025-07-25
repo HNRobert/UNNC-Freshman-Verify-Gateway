@@ -1,0 +1,40 @@
+version: "3.8"
+
+services:
+  app:
+    image: ghcr.io/hnrobert/unnc-freshman-verify-gateway:main
+    container_name: production-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - UNNC_VERIFY_USER_DATA_ROOT=/app/user-data
+    volumes:
+      - ${UNNC_VERIFY_USER_DATA_ROOT:-./user-data}:/app/user-data:ro
+    networks:
+      - app-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.production-app.rule=Host(`unnc-verify.hnrobert.space`)"
+      - "traefik.http.routers.production-app.tls=true"
+      - "traefik.http.services.production-app.loadbalancer.server.port=3000"
+
+  nginx:
+    image: nginx:alpine
+    container_name: production-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      # - ./ssl:/etc/nginx/ssl:ro  # 如果使用自签名证书
+    depends_on:
+      - app
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

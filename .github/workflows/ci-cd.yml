@@ -1,0 +1,260 @@
+name: Build, Test and Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  # pull_request:
+  #   branches:
+  #     - main
+  #     - develop
+  release:
+    types: [published]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  lint-and-test:
+    name: Lint and Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: echo "store_path=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.store_path }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run ESLint
+        run: pnpm lint
+
+      - name: Build application
+        run: pnpm build
+
+  build-and-push:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    if: github.event_name != 'pull_request'
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Convert image name to lowercase
+        id: image_name
+        run: echo "lowercase=${IMAGE_NAME,,}" >> $GITHUB_OUTPUT
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ steps.image_name.outputs.lowercase }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: self-hosted
+    needs: [build-and-push]
+    if: github.ref == 'refs/heads/develop'
+    env:
+      UNNC_VERIFY_USER_DATA_ROOT: /home/robert/Documents/UNNC_VERIFY_USER_DATA_ROOT
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Convert image name to lowercase
+        id: image_name
+        run: echo "lowercase=${IMAGE_NAME,,}" >> $GITHUB_OUTPUT
+
+      - name: Pull latest image
+        run: |
+          docker pull ${{ env.REGISTRY }}/${{ steps.image_name.outputs.lowercase }}:develop
+
+      - name: Deploy to staging with docker-compose
+        run: |
+          # 检查宿主机是否设置了用户数据目录环境变量
+          if [ -z "${UNNC_VERIFY_USER_DATA_ROOT}" ]; then
+            echo "❌ UNNC_VERIFY_USER_DATA_ROOT environment variable is not set on the host"
+            echo "Please set it with: export UNNC_VERIFY_USER_DATA_ROOT=/path/to/your/user-data"
+            exit 1
+          fi
+
+          # 检查用户数据目录是否存在
+          if [ ! -d "${UNNC_VERIFY_USER_DATA_ROOT}" ]; then
+            echo "❌ User data directory not found: ${UNNC_VERIFY_USER_DATA_ROOT}"
+            echo "Please ensure the directory exists and contains the required data structure"
+            exit 1
+          fi
+
+          echo "📁 Using user data directory: ${UNNC_VERIFY_USER_DATA_ROOT}"
+          echo "📋 Directory contents:"
+          ls -la "${UNNC_VERIFY_USER_DATA_ROOT}"
+
+          # 停止现有的 staging 服务
+          docker-compose -f docker-compose.staging.yml down || true
+
+          # 启动新的 staging 服务
+          docker-compose -f docker-compose.staging.yml up -d
+
+          # 等待服务启动
+          sleep 10
+
+          # 健康检查
+          if curl -f http://localhost:3001/api/health; then
+            echo "✅ Staging deployment successful!"
+            echo "🌐 Application is running on http://localhost:3001"
+            
+            # 显示健康检查详细信息
+            echo "📊 Health check details:"
+            curl -s http://localhost:3001/api/health | jq '.' || curl -s http://localhost:3001/api/health
+            
+            # 检查可用身份
+            echo "🔍 Available identities:"
+            curl -s http://localhost:3001/api/identities | jq '.' || curl -s http://localhost:3001/api/identities
+          else
+            echo "❌ Health check failed, deployment may have issues"
+            echo "📋 Container logs:"
+            docker-compose -f docker-compose.staging.yml logs
+            exit 1
+          fi
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: self-hosted
+    needs: [build-and-push]
+    if: github.ref == 'refs/heads/main' || github.event_name == 'release'
+    env:
+      UNNC_VERIFY_USER_DATA_ROOT: /home/robert/Documents/UNNC_VERIFY_USER_DATA_ROOT
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Convert image name to lowercase
+        id: image_name
+        run: echo "lowercase=${IMAGE_NAME,,}" >> $GITHUB_OUTPUT
+
+      - name: Pull latest image
+        run: |
+          docker pull ${{ env.REGISTRY }}/${{ steps.image_name.outputs.lowercase }}:main
+
+      - name: Deploy to production with docker-compose
+        run: |
+          # 检查宿主机是否设置了用户数据目录环境变量
+          if [ -z "${UNNC_VERIFY_USER_DATA_ROOT}" ]; then
+            echo "❌ UNNC_VERIFY_USER_DATA_ROOT environment variable is not set on the host"
+            echo "Please set it with: export UNNC_VERIFY_USER_DATA_ROOT=/path/to/your/user-data"
+            exit 1
+          fi
+
+          # 检查用户数据目录是否存在
+          if [ ! -d "${UNNC_VERIFY_USER_DATA_ROOT}" ]; then
+            echo "❌ User data directory not found: ${UNNC_VERIFY_USER_DATA_ROOT}"
+            echo "Please ensure the directory exists and contains the required data structure"
+            exit 1
+          fi
+
+          echo "📁 Using user data directory: ${UNNC_VERIFY_USER_DATA_ROOT}"
+
+          # 创建备份（可选）
+          if docker ps | grep -q production-app; then
+            echo "📦 Creating backup of current production..."
+            docker tag ${{ env.REGISTRY }}/${{ steps.image_name.outputs.lowercase }}:main ${{ env.REGISTRY }}/${{ steps.image_name.outputs.lowercase }}:backup-$(date +%Y%m%d-%H%M%S)
+          fi
+
+          # 停止现有的 production 服务
+          docker-compose -f docker-compose.production.yml down || true
+
+          # 启动新的 production 服务
+          docker-compose -f docker-compose.production.yml up -d
+
+          # 等待服务启动
+          sleep 15
+
+          # 健康检查
+          if curl -f http://localhost:3000/api/health; then
+            echo "✅ Production deployment successful!"
+            echo "🌐 Application is running on http://localhost:3000"
+            
+            # 清理旧的镜像（保留最近3个版本）
+            docker image prune -f
+          else
+            echo "❌ Health check failed, rolling back..."
+            echo "📋 Container logs:"
+            docker-compose -f docker-compose.production.yml logs
+            
+            # 回滚到备份版本（如果存在）
+            echo "🔄 Attempting rollback..."
+            docker-compose -f docker-compose.production.yml down
+            # 这里可以添加回滚逻辑
+            exit 1
+          fi

@@ -1,0 +1,50 @@
+# Metadata
+metadata:
+  title: "CPU Recruitment Group QR Code Verification"
+  description: "QR code verification system for UNNC Computer Psycho Union recruitment group"
+
+# Common texts
+common:
+  switchLanguage: "Switch Language"
+  english: "English (UK)"
+  chinese: "中文"
+  loading: "Loading..."
+  error: "Error"
+  success: "Success"
+  confirm: "Confirm"
+  cancel: "Cancel"
+
+# Verification page related texts
+verify:
+  # THE FIRST TWO LINES HERE ARE THE TAGS YOU MAY WANT TO EDIT
+  groupName: "CPU Recruitment Group" # Group name, can be modified as needed
+  unableToVerifyMessage: 'If you cannot verify, please send an email to computerpsychounion@nottingham.edu.cn, or follow the WeChat official account "宁诺CPU" and send your admission notice, or contact CPU members around you to join the group' # Unable to verify message when expanded
+  title: "QR Code Access Verification"
+  verifyIdentity: "Please verify your identity"
+  description: "The system will query your admission status at entry.nottingham.edu.cn based on your ID number and name. No personal information will be retained in the backend (pure frontend application, code is open source). After verification, the QR code for {{verify.groupName}} will be displayed."
+  warningText: "There are far too many commercial accounts bothering everyone with ghostwriting services, so we have to resort to this measure. Please do understand."
+  unableToVerify: "Unable to verify? (Postgraduate students/Alumni/Current students)"
+  idNumber: "ID Number"
+  idNumberPlaceholder: "Please enter 18-digit ID number"
+  name: "Name"
+  namePlaceholder: "Please enter your name"
+  submitButton: "Verify Admission Status"
+  verifying: "Verifying..." # Text shown during loading
+  verifySuccess: "Verification successful, redirecting..." # Success message
+  verifyFailed: "Unable to find your admission information" # Failure message
+  requestFailed: "Verification request failed, please try again later" # Network error message
+  invalidUsage: "Unauthorised usage, please exit"
+  openSourceText: "Open source on" # Text before the open source link
+
+# Show page related texts
+show:
+  successTitle: "Verification successful! {{verify.groupName}} QR Code:" # Success page title
+  mobileInstructions: "Please long press to scan the QR code to join the group, do not screenshot and forward" # Mobile-specific instructions
+  desktopInstructions: "Please use your mobile WeChat to scan the QR code to join the group, do not screenshot and forward" # Desktop-specific instructions
+  backToHome: "Back to Home" # Back to home button text
+
+# Form validation related texts
+validation:
+  idRequired: "Please enter ID number"
+  idLength: "ID number must be 18 digits"
+  nameRequired: "Please enter name"

@@ -1,0 +1,50 @@
+# 页面元数据
+metadata:
+  title: "CPU招新群二维码验证"
+  description: "宁诺计算机爱好者协会招新群二维码获取验证系统"
+
+# 通用文本
+common:
+  switchLanguage: "切换语言"
+  english: "English"
+  chinese: "中文"
+  loading: "加载中..."
+  error: "错误"
+  success: "成功"
+  confirm: "确认"
+  cancel: "取消"
+
+# 验证页面相关文本
+verify:
+  # 你最可能需要编辑的是这里的前两行
+  groupName: "CPU招新群" # 群名称，可根据需要修改
+  unableToVerifyMessage: '如果无法验证, 请发送邮件到 computerpsychounion@nottingham.edu.cn, 或关注公众号"宁诺CPU"发送你的录取通知, 或联系你身边的CPU成员进群' # 无法验证标签展开后的提示
+  title: "二维码获取验证"
+  verifyIdentity: "请验证身份"
+  description: "系统将根据您的身份证号和姓名前往entry.nottingham.edu.cn查询录取状态，不会在后台保留您的个人信息(纯前端应用，代码已开源)。验证通过后将展示 {{verify.groupName}} 的二维码。"
+  warningText: "想进群骚扰大家的代写等商业号太多了，所以出此下策，还请各位理解。"
+  unableToVerify: "无法验证? (硕博新生/宁诺老登/校友)"
+  idNumber: "身份证号"
+  idNumberPlaceholder: "请输入18位身份证号"
+  name: "姓名"
+  namePlaceholder: "请输入您的姓名"
+  submitButton: "验证录取状态"
+  verifying: "正在验证..." # 加载时显示的文本
+  verifySuccess: "验证成功，正在跳转..." # 验证成功的提示
+  verifyFailed: "查询不到您的录取信息" # 验证失败的提示
+  requestFailed: "验证请求失败，请稍后再试" # 网络请求失败的提示
+  invalidUsage: "非法使用，请退出" # 版权校验失败的提示
+  openSourceText: "Open source on" # 开源链接前的文本
+
+# 展示页面相关文本
+show:
+  successTitle: "验证成功！{{verify.groupName}}二维码:" # 成功页面标题
+  mobileInstructions: "请长按识别二维码加入群聊，请勿截图转发" # 移动端特定说明
+  desktopInstructions: "请使用手机微信扫描二维码加入群聊，请勿截图转发" # 桌面端特定说明
+  backToHome: "返回首页" # 返回首页按钮文本
+
+# 表单验证相关文本
+validation:
+  idRequired: "请输入身份证号"
+  idLength: "身份证号必须为18位"
+  nameRequired: "请输入姓名"

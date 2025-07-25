@@ -1,0 +1,28 @@
+# 页面元数据
+metadata:
+  title: "UNNC 身份验证门户"
+  description: "宁波诺丁汉大学新生群组二维码获取验证系统"
+
+# 通用文本
+common:
+  loading: "加载中..."
+  cancel: "取消"
+
+# 首页文本
+homepage:
+  title: "UNNC 身份验证门户"
+  description: "安全的群组二维码获取验证系统"
+  features:
+    qrcode:
+      title: "二维码获取"
+      description: "验证身份后获取专属群组二维码"
+    identity:
+      title: "多身份支持"
+      description: "支持不同组织和群组的身份验证"
+    secure:
+      title: "安全验证"
+      description: "基于学校官方系统的安全身份验证"
+  availableGroups: "可用群组"
+  clickToAccess: "点击访问 {identity} 群组验证"
+  noGroupsAvailable: "暂无可用群组"
+  footer: "© 2025 HNRobert | 开源项目 | 仅用于身份验证"
