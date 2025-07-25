@@ -54,12 +54,44 @@ export default function IdentityShowCodePage() {
             const config = await response.json();
             setQrCodeUrl(config.qrCodeUrl || "/qrcode.jpg");
             setGroupName(config.groupName || identity.toUpperCase());
+
+            // Load identity-specific locales list
+            const localesResponse = await fetch(
+              `/api/identity/${identity.toLowerCase()}/locales`
+            );
+            let identityLocales: string[] = [];
+            if (localesResponse.ok) {
+              identityLocales = await localesResponse.json();
+            }
+
             // Load identity-specific translations
-            if (config.locales) {
-              loadIdentityTranslations(config.locales);
-              // Add a small delay to ensure translations are processed
-              setTimeout(() => setTranslationsLoaded(true), 100);
+            if (identityLocales.length > 0) {
+              const translations: Record<string, Record<string, unknown>> = {};
+              await Promise.all(
+                identityLocales.map(async (locale: string) => {
+                  try {
+                    const localeResponse = await fetch(
+                      `/api/identity/${identity.toLowerCase()}/locales/${locale}`
+                    );
+                    if (localeResponse.ok) {
+                      const translation = await localeResponse.json();
+                      translations[locale] = translation;
+                    }
+                  } catch (error) {
+                    console.error(
+                      `Failed to load identity locale ${locale}:`,
+                      error
+                    );
+                  }
+                })
+              );
+              loadIdentityTranslations(translations, identityLocales);
+              setTranslationsLoaded(true);
             } else {
+              // If no identity-specific locales, use config.locales as fallback
+              if (config.locales) {
+                loadIdentityTranslations(config.locales);
+              }
               setTranslationsLoaded(true);
             }
           } else {
