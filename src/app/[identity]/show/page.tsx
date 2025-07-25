@@ -90,7 +90,8 @@ export default function IdentityShowCodePage() {
             } else {
               // If no identity-specific locales, use config.locales as fallback
               if (config.locales) {
-                loadIdentityTranslations(config.locales);
+                const configLocales = Object.keys(config.locales);
+                loadIdentityTranslations(config.locales, configLocales);
               }
               setTranslationsLoaded(true);
             }
