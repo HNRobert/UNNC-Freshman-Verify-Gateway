@@ -5,17 +5,20 @@ interface CacheEntry<T> {
   data: T;
   timestamp: number;
   ttl: number; // Time to live in milliseconds
+  refreshFunction?: () => Promise<T>; // Function to refresh the data
 }
 
 class MemoryCache {
   private cache = new Map<string, CacheEntry<unknown>>();
   private defaultTTL = 5 * 60 * 1000; // 5 minutes default TTL
+  private refreshInterval: NodeJS.Timeout | null = null;
 
-  set<T>(key: string, data: T, ttl?: number): void {
+  set<T>(key: string, data: T, ttl?: number, refreshFunction?: () => Promise<T>): void {
     this.cache.set(key, {
       data,
       timestamp: Date.now(),
       ttl: ttl || this.defaultTTL,
+      refreshFunction,
     });
   }
 
@@ -68,6 +71,67 @@ class MemoryCache {
       }
     }
   }
+
+  // Refresh cache entries that are near expiration or expired
+  async refreshCache(): Promise<void> {
+    const now = Date.now();
+    const refreshPromises: Promise<void>[] = [];
+
+    for (const [key, entry] of this.cache.entries()) {
+      const age = now - entry.timestamp;
+      const shouldRefresh = 
+        age > entry.ttl * 0.8 || // Refresh when 80% of TTL has passed
+        (age > entry.ttl && entry.refreshFunction); // Refresh expired entries with refresh function
+
+      if (shouldRefresh && entry.refreshFunction) {
+        refreshPromises.push(this.refreshEntry(key, entry));
+      }
+    }
+
+    await Promise.allSettled(refreshPromises);
+  }
+
+  private async refreshEntry(key: string, entry: CacheEntry<unknown>): Promise<void> {
+    try {
+      if (entry.refreshFunction) {
+        const newData = await entry.refreshFunction();
+        this.cache.set(key, {
+          data: newData,
+          timestamp: Date.now(),
+          ttl: entry.ttl,
+          refreshFunction: entry.refreshFunction,
+        });
+        console.log(`Cache refreshed for key: ${key}`);
+      }
+    } catch (error) {
+      console.error(`Failed to refresh cache for key ${key}:`, error);
+      // Keep the old data if refresh fails
+    }
+  }
+
+  // Start automatic refresh interval
+  startAutoRefresh(intervalMs: number = 2 * 60 * 1000): void { // Default: 2 minutes
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+    }
+
+    this.refreshInterval = setInterval(async () => {
+      try {
+        await this.refreshCache();
+        this.cleanup(); // Also cleanup expired entries
+      } catch (error) {
+        console.error('Error during cache refresh:', error);
+      }
+    }, intervalMs);
+  }
+
+  // Stop automatic refresh
+  stopAutoRefresh(): void {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+      this.refreshInterval = null;
+    }
+  }
 }
 
 // Export a singleton instance
@@ -78,4 +142,7 @@ if (typeof setInterval !== "undefined") {
   setInterval(() => {
     cache.cleanup();
   }, 10 * 60 * 1000);
+
+  // Start auto-refresh every 2 minutes
+  cache.startAutoRefresh(2 * 60 * 1000);
 }
