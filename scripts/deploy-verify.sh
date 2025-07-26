@@ -5,27 +5,29 @@
 
 set -e
 
+DOMAIN="unnc-verify.hnrobert.space"
+
 echo "🔍 开始部署验证..."
 
 # 检查 SSL 证书文件
 echo "📜 检查 SSL 证书文件..."
-if [ -f "./ssl/cert.pem" ] && [ -f "./ssl/key.pem" ]; then
-    echo "✅ SSL 证书文件存在"
+if [ -f "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ] && [ -f "/etc/letsencrypt/live/$DOMAIN/privkey.pem" ]; then
+    echo "✅ Let's Encrypt SSL 证书文件存在"
     
     # 验证证书格式
-    if openssl x509 -in ./ssl/cert.pem -noout -text > /dev/null 2>&1; then
+    if openssl x509 -in /etc/letsencrypt/live/$DOMAIN/fullchain.pem -noout -text > /dev/null 2>&1; then
         echo "✅ SSL 证书格式正确"
         
         # 显示证书信息
         echo "📋 证书信息:"
-        openssl x509 -in ./ssl/cert.pem -noout -subject -dates
+        openssl x509 -in /etc/letsencrypt/live/$DOMAIN/fullchain.pem -noout -subject -dates
     else
         echo "❌ SSL 证书格式错误"
         exit 1
     fi
     
     # 验证私钥格式
-    if openssl rsa -in ./ssl/key.pem -noout > /dev/null 2>&1; then
+    if openssl rsa -in /etc/letsencrypt/live/$DOMAIN/privkey.pem -noout > /dev/null 2>&1; then
         echo "✅ SSL 私钥格式正确"
     else
         echo "❌ SSL 私钥格式错误"
@@ -33,8 +35,8 @@ if [ -f "./ssl/cert.pem" ] && [ -f "./ssl/key.pem" ]; then
     fi
     
     # 验证证书和私钥匹配
-    CERT_MODULUS=$(openssl x509 -noout -modulus -in ./ssl/cert.pem | openssl md5)
-    KEY_MODULUS=$(openssl rsa -noout -modulus -in ./ssl/key.pem | openssl md5)
+    CERT_MODULUS=$(openssl x509 -noout -modulus -in /etc/letsencrypt/live/$DOMAIN/fullchain.pem | openssl md5)
+    KEY_MODULUS=$(openssl rsa -noout -modulus -in /etc/letsencrypt/live/$DOMAIN/privkey.pem | openssl md5)
     
     if [ "$CERT_MODULUS" = "$KEY_MODULUS" ]; then
         echo "✅ 证书和私钥匹配"
@@ -43,7 +45,7 @@ if [ -f "./ssl/cert.pem" ] && [ -f "./ssl/key.pem" ]; then
         exit 1
     fi
 else
-    echo "⚠️ SSL 证书文件不存在，将使用自签名证书"
+    echo "⚠️ Let's Encrypt SSL 证书文件不存在，请先运行 certbot 获取证书"
 fi
 
 # 检查用户数据目录
@@ -121,18 +123,15 @@ else
 fi
 
 # HTTPS 健康检查
-if [ "$1" = "production" ] && [ -f "./ssl/certbot/conf/live/unnc-verify.hnrobert.space/fullchain.pem" ]; then
+if [ "$1" = "production" ] && [ -f "/etc/letsencrypt/live/unnc-verify.hnrobert.space/fullchain.pem" ]; then
     # 生产环境使用 Let's Encrypt 证书
     if curl -k -f "https://localhost:$HTTPS_PORT/api/health" > /dev/null 2>&1; then
         echo "✅ HTTPS 健康检查通过 (Let's Encrypt)"
     else
         echo "⚠️ HTTPS 健康检查失败，但会继续部署"
     fi
-elif [ -f "./ssl/cert.pem" ]; then
-    # 使用自签名证书
-    if curl -k -f "https://localhost:$HTTPS_PORT/api/health" > /dev/null 2>&1; then
-        echo "✅ HTTPS 健康检查通过 (Self-signed)"
-    else
+else
+    echo "⚠️ Let's Encrypt 证书不存在，跳过 HTTPS 健康检查"
         echo "⚠️ HTTPS 健康检查失败，但会继续部署"
     fi
 fi
@@ -150,6 +149,6 @@ fi
 echo "🎉 部署验证完成！"
 echo "🌐 服务访问地址:"
 echo "  - HTTP:  http://localhost:$HTTP_PORT"
-if [ -f "./ssl/certbot/conf/live/unnc-verify.hnrobert.space/fullchain.pem" ] || [ -f "./ssl/cert.pem" ]; then
+if [ -f "/etc/letsencrypt/live/unnc-verify.hnrobert.space/fullchain.pem" ]; then
     echo "  - HTTPS: https://localhost:$HTTPS_PORT"
 fi
