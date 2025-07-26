@@ -200,10 +200,6 @@ jobs:
           if [ "$NEED_RENEWAL" = "true" ]; then
             echo "🔧 Starting certificate generation/renewal process..."
             
-            # 创建必要的目录
-            echo "📁 Creating necessary directories..."
-            sudo mkdir -p /etc/letsencrypt /var/www/certbot
-            
             # 确保端口80可用 - 停止可能冲突的服务
             echo "� Stopping existing services to free up port 80..."
             docker-compose -p unnc-verify-production -f docker-compose.production.yml down || true
