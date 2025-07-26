@@ -6,13 +6,13 @@
 set -e
 
 DOMAIN="unnc-verify.hnrobert.space"
-CERTBOT_DIR="./ssl/certbot"
+CERTBOT_DIR="/etc/letsencrypt"
 DOCKER_COMPOSE_FILE="docker-compose.production.yml"
 
 echo "🔍 检查 SSL 证书续期..."
 
 # 检查证书是否存在
-CERT_PATH="$CERTBOT_DIR/conf/live/$DOMAIN/fullchain.pem"
+CERT_PATH="$CERTBOT_DIR/live/$DOMAIN/fullchain.pem"
 
 if [ ! -f "$CERT_PATH" ]; then
     echo "❌ 证书文件不存在: $CERT_PATH"
@@ -33,9 +33,9 @@ else
 fi
 
 # 备份当前证书
-BACKUP_DIR="./ssl/backup/$(date +%Y%m%d-%H%M%S)"
+BACKUP_DIR="/etc/letsencrypt/backup/$(date +%Y%m%d-%H%M%S)"
 mkdir -p "$BACKUP_DIR"
-cp -r "$CERTBOT_DIR/conf/live/$DOMAIN" "$BACKUP_DIR/" || true
+cp -r "$CERTBOT_DIR/live/$DOMAIN" "$BACKUP_DIR/" || true
 echo "📦 已备份当前证书到: $BACKUP_DIR"
 
 # 停止 nginx 以释放80端口用于 ACME 挑战
@@ -45,8 +45,8 @@ docker-compose -f "$DOCKER_COMPOSE_FILE" stop nginx || true
 # 运行 certbot 续期
 echo "🔄 运行 certbot 续期..."
 docker run --rm \
-    -v $(pwd)/$CERTBOT_DIR/conf:/etc/letsencrypt \
-    -v $(pwd)/$CERTBOT_DIR/www:/var/www/certbot \
+    -v $CERTBOT_DIR:/etc/letsencrypt \
+    -v /var/www/certbot:/var/www/certbot \
     -p 80:80 \
     certbot/certbot \
     renew --standalone --quiet
@@ -71,7 +71,7 @@ if [ -f "$CERT_PATH" ]; then
             echo "✅ HTTPS 服务正常运行"
             
             # 清理旧的备份（保留最近5个）
-            find ./ssl/backup -type d -name "????????-??????" | sort | head -n -5 | xargs rm -rf || true
+            find /etc/letsencrypt/backup -type d -name "????????-??????" | sort | head -n -5 | xargs rm -rf || true
             
             echo "🎉 证书续期完成!"
         else

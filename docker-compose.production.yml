@@ -29,8 +29,8 @@ services:
       - "3443:443" # HTTPS port
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./ssl/certbot/conf:/etc/letsencrypt:ro # Let's Encrypt 证书 (本地目录)
-      - ./ssl/certbot/www:/var/www/certbot:ro # ACME 挑战文件 (本地目录)
+      - /etc/letsencrypt:/etc/letsencrypt:ro # Let's Encrypt 证书 (系统目录)
+      - /var/www/certbot:/var/www/certbot:ro # ACME 挑战文件 (系统目录)
     depends_on:
       - app
     networks:

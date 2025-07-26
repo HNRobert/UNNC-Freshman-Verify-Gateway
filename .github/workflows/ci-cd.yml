@@ -179,7 +179,7 @@ jobs:
           echo "📜 Setting up SSL certificates for production..."
 
           # 检查是否已有 Let's Encrypt 证书
-            CERT_PATH="/etc/letsencrypt/live/${{ secrets.PRODUCTION_DOMAIN }}/fullchain.pem"
+          CERT_PATH="/etc/letsencrypt/live/${{ secrets.PRODUCTION_DOMAIN }}/fullchain.pem"
 
           if [ -f "$CERT_PATH" ]; then
             echo "✅ Let's Encrypt certificate already exists"
@@ -202,7 +202,7 @@ jobs:
             
             # 创建必要的目录
             echo "📁 Creating necessary directories..."
-            mkdir -p ssl/certbot/conf ssl/certbot/www
+            sudo mkdir -p /etc/letsencrypt /var/www/certbot
             
             # 确保端口80可用 - 停止可能冲突的服务
             echo "� Stopping existing services to free up port 80..."
@@ -212,36 +212,40 @@ jobs:
             
             # 运行 certbot 获取证书（使用 standalone 模式）
             echo "🔐 Running certbot to obtain/renew certificate..."
-            docker run --rm \
+            CERTBOT_RESULT=$(docker run --rm \
               -p 80:80 \
-              -v $(pwd)/ssl/certbot/conf:/etc/letsencrypt \
-              -v $(pwd)/ssl/certbot/www:/var/www/certbot \
+              -v /etc/letsencrypt:/etc/letsencrypt \
+              -v /var/www/certbot:/var/www/certbot \
               certbot/certbot \
               certonly --standalone \
               --email ${{ secrets.CERTBOT_EMAIL }} \
               --agree-tos \
               --no-eff-email \
               --force-renewal \
-              -d ${{ secrets.PRODUCTION_DOMAIN }}
+              -d ${{ secrets.PRODUCTION_DOMAIN }} 2>&1)
+            
+            echo "$CERTBOT_RESULT"
             
             # 验证证书生成是否成功
-            CERT_PATH="./ssl/certbot/conf/live/${{ secrets.PRODUCTION_DOMAIN }}/fullchain.pem"
+            CERT_PATH="/etc/letsencrypt/live/${{ secrets.PRODUCTION_DOMAIN }}/fullchain.pem"
             if [ -f "$CERT_PATH" ]; then
               echo "✅ Certificate obtained successfully!"
               echo "📋 Certificate info:"
               openssl x509 -in "$CERT_PATH" -noout -subject -dates
+            elif echo "$CERTBOT_RESULT" | grep -q "Successfully received certificate"; then
+              echo "✅ Certificate obtained successfully (detected from certbot output)!"
+              # 检查是否证书文件确实存在
+              if [ -f "$CERT_PATH" ]; then
+                echo "📋 Certificate info:"
+                openssl x509 -in "$CERT_PATH" -noout -subject -dates
+              else
+                echo "⚠️ Certificate was obtained but file not found at expected location"
+                echo "🔍 Looking for certificate files..."
+                find /etc/letsencrypt -name "*.pem" -type f 2>/dev/null || echo "No .pem files found"
+              fi
             else
-              echo "❌ Failed to obtain certificate, falling back to self-signed"
-              
-              # 生成自签名证书作为后备
-              mkdir -p ssl
-              openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-                -keyout ./ssl/key.pem \
-                -out ./ssl/cert.pem \
-                -subj "/C=CN/ST=Zhejiang/L=Ningbo/O=UNNC/CN=${{ secrets.PRODUCTION_DOMAIN }}"
-              
-              chmod 600 ./ssl/*.pem
-              echo "✅ Self-signed certificate created as fallback"
+              echo "❌ Failed to obtain certificate, will create self-signed certificate"
+              echo "⚠️ Production will use self-signed certificate - please check domain configuration"
             fi
           fi
 
