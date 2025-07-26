@@ -134,24 +134,6 @@ jobs:
 
       - name: Deploy to staging with docker-compose
         run: |
-          # 检查宿主机是否设置了用户数据目录环境变量
-          if [ -z "${UNNC_VERIFY_USER_DATA_ROOT}" ]; then
-            echo "❌ UNNC_VERIFY_USER_DATA_ROOT environment variable is not set on the host"
-            echo "Please set it with: export UNNC_VERIFY_USER_DATA_ROOT=/path/to/your/user-data"
-            exit 1
-          fi
-
-          # 检查用户数据目录是否存在
-          if [ ! -d "${UNNC_VERIFY_USER_DATA_ROOT}" ]; then
-            echo "❌ User data directory not found: ${UNNC_VERIFY_USER_DATA_ROOT}"
-            echo "Please ensure the directory exists and contains the required data structure"
-            exit 1
-          fi
-
-          echo "📁 Using user data directory: ${UNNC_VERIFY_USER_DATA_ROOT}"
-          echo "📋 Directory contents:"
-          ls -la "${UNNC_VERIFY_USER_DATA_ROOT}"
-
           # 停止现有的 staging 服务
           docker-compose -p unnc-verify-staging -f docker-compose.staging.yml down || true
 
