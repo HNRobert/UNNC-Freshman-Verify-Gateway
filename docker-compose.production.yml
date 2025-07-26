@@ -25,11 +25,12 @@ services:
     container_name: production-nginx
     restart: unless-stopped
     ports:
-      - "3443:443"
+      - "80:80" # HTTP port for ACME challenges
+      - "3443:443" # HTTPS port
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - /etc/letsencrypt:/etc/letsencrypt:ro # Let's Encrypt 证书 (Ubuntu certbot 默认路径)
-      - /var/www/certbot:/var/www/certbot:ro # ACME 挑战文件 (Ubuntu certbot 默认路径)
+      - ./ssl/certbot/conf:/etc/letsencrypt:ro # Let's Encrypt 证书 (本地目录)
+      - ./ssl/certbot/www:/var/www/certbot:ro # ACME 挑战文件 (本地目录)
     depends_on:
       - app
     networks:
