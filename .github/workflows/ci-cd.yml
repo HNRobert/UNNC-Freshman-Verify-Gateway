@@ -200,65 +200,32 @@ jobs:
           if [ "$NEED_RENEWAL" = "true" ]; then
             echo "🔧 Starting certificate generation/renewal process..."
             
-            # 首先启动基础的 nginx 服务来处理 ACME 挑战
-            echo "🚀 Starting temporary nginx for ACME challenge..."
+            # 创建必要的目录
+            echo "📁 Creating necessary directories..."
+            mkdir -p ssl/certbot/conf ssl/certbot/www
             
-            # 创建临时的 nginx 配置用于 ACME 挑战
-            cat > ./nginx/nginx-acme.conf << 'EOF'
-          events {
-              worker_connections 1024;
-          }
-
-          http {
-              server {
-                  listen 80;
-                  server_name ${{ secrets.PRODUCTION_DOMAIN }};
-
-                  location /.well-known/acme-challenge/ {
-                      root /var/www/certbot;
-                      try_files $uri $uri/ =404;
-                  }
-
-                  location / {
-                      return 200 "ACME challenge server ready";
-                      add_header Content-Type text/plain;
-                  }
-              }
-          }
-          EOF
+            # 确保端口80可用 - 停止可能冲突的服务
+            echo "� Stopping existing services to free up port 80..."
+            docker-compose -p unnc-verify-production -f docker-compose.production.yml down || true
+            docker stop temp-nginx 2>/dev/null || true
+            docker rm temp-nginx 2>/dev/null || true
             
-            # 启动临时 nginx 用于 ACME 挑战
-            docker run -d --name temp-nginx \
-              -p 3000:80 \
-              -v $(pwd)/nginx/nginx-acme.conf:/etc/nginx/nginx.conf:ro \
-              -v $(pwd)/ssl/certbot/www:/var/www/certbot \
-              nginx:alpine
-            
-            # 等待 nginx 启动
-            sleep 5
-            
-            # 运行 certbot 获取证书
+            # 运行 certbot 获取证书（使用 standalone 模式）
             echo "🔐 Running certbot to obtain/renew certificate..."
             docker run --rm \
+              -p 80:80 \
               -v $(pwd)/ssl/certbot/conf:/etc/letsencrypt \
               -v $(pwd)/ssl/certbot/www:/var/www/certbot \
               certbot/certbot \
-              certonly --webroot \
-              --webroot-path=/var/www/certbot \
+              certonly --standalone \
               --email ${{ secrets.CERTBOT_EMAIL }} \
               --agree-tos \
               --no-eff-email \
               --force-renewal \
               -d ${{ secrets.PRODUCTION_DOMAIN }}
             
-            # 停止临时 nginx
-            docker stop temp-nginx || true
-            docker rm temp-nginx || true
-            
-            # 清理临时配置
-            rm -f ./nginx/nginx-acme.conf
-            
             # 验证证书生成是否成功
+            CERT_PATH="./ssl/certbot/conf/live/${{ secrets.PRODUCTION_DOMAIN }}/fullchain.pem"
             if [ -f "$CERT_PATH" ]; then
               echo "✅ Certificate obtained successfully!"
               echo "📋 Certificate info:"
@@ -267,6 +234,7 @@ jobs:
               echo "❌ Failed to obtain certificate, falling back to self-signed"
               
               # 生成自签名证书作为后备
+              mkdir -p ssl
               openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
                 -keyout ./ssl/key.pem \
                 -out ./ssl/cert.pem \
