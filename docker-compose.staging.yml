@@ -11,7 +11,7 @@ services:
       - NODE_ENV=staging
       - UNNC_VERIFY_USER_DATA_ROOT=/app/user-data
     volumes:
-      - ${UNNC_VERIFY_USER_DATA_ROOT:-./user-data}:/app/user-data:ro
+      - ${UNNC_VERIFY_USER_DATA_ROOT:-./user-data}:/app/user-data
     networks:
       - app-network
     labels:
@@ -19,19 +19,6 @@ services:
       - "traefik.http.routers.staging-app.rule=Host(`staging.unnc-verify.hnrobert.space`)"
       - "traefik.http.routers.staging-app.tls=true"
       - "traefik.http.services.staging-app.loadbalancer.server.port=3000"
-
-  nginx:
-    image: nginx:alpine
-    container_name: staging-nginx
-    restart: unless-stopped
-    ports:
-      - "8081:80"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-    depends_on:
-      - app
-    networks:
-      - app-network
 
 networks:
   app-network:

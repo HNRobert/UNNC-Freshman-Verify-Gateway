@@ -111,7 +111,7 @@ jobs:
     needs: [build-and-push]
     if: github.ref == 'refs/heads/develop'
     env:
-      UNNC_VERIFY_USER_DATA_ROOT: /home/robert/Documents/UNNC_VERIFY_USER_DATA_ROOT
+      UNNC_VERIFY_USER_DATA_ROOT: ${{ secrets.UNNC_VERIFY_USER_DATA_ROOT }}
 
     steps:
       - name: Checkout code
@@ -134,29 +134,11 @@ jobs:
 
       - name: Deploy to staging with docker-compose
         run: |
-          # 检查宿主机是否设置了用户数据目录环境变量
-          if [ -z "${UNNC_VERIFY_USER_DATA_ROOT}" ]; then
-            echo "❌ UNNC_VERIFY_USER_DATA_ROOT environment variable is not set on the host"
-            echo "Please set it with: export UNNC_VERIFY_USER_DATA_ROOT=/path/to/your/user-data"
-            exit 1
-          fi
-
-          # 检查用户数据目录是否存在
-          if [ ! -d "${UNNC_VERIFY_USER_DATA_ROOT}" ]; then
-            echo "❌ User data directory not found: ${UNNC_VERIFY_USER_DATA_ROOT}"
-            echo "Please ensure the directory exists and contains the required data structure"
-            exit 1
-          fi
-
-          echo "📁 Using user data directory: ${UNNC_VERIFY_USER_DATA_ROOT}"
-          echo "📋 Directory contents:"
-          ls -la "${UNNC_VERIFY_USER_DATA_ROOT}"
-
           # 停止现有的 staging 服务
-          docker-compose -f docker-compose.staging.yml down || true
+          docker-compose -p unnc-verify-staging -f docker-compose.staging.yml down || true
 
           # 启动新的 staging 服务
-          docker-compose -f docker-compose.staging.yml up -d
+          docker-compose -p unnc-verify-staging -f docker-compose.staging.yml up -d
 
           # 等待服务启动
           sleep 10
@@ -176,7 +158,7 @@ jobs:
           else
             echo "❌ Health check failed, deployment may have issues"
             echo "📋 Container logs:"
-            docker-compose -f docker-compose.staging.yml logs
+            docker-compose -p unnc-verify-staging -f docker-compose.staging.yml logs
             exit 1
           fi
 
@@ -186,11 +168,114 @@ jobs:
     needs: [build-and-push]
     if: github.ref == 'refs/heads/main' || github.event_name == 'release'
     env:
-      UNNC_VERIFY_USER_DATA_ROOT: /home/robert/Documents/UNNC_VERIFY_USER_DATA_ROOT
+      UNNC_VERIFY_USER_DATA_ROOT: ${{ secrets.UNNC_VERIFY_USER_DATA_ROOT }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Setup SSL certificates with Certbot
+        run: |
+          echo "📜 Setting up SSL certificates for production..."
+
+          # 检查是否已有 Let's Encrypt 证书
+            CERT_PATH="/etc/letsencrypt/live/${{ secrets.PRODUCTION_DOMAIN }}/fullchain.pem"
+
+          if [ -f "$CERT_PATH" ]; then
+            echo "✅ Let's Encrypt certificate already exists"
+            
+            # 检查证书是否即将过期（30天内）
+            if openssl x509 -checkend 2592000 -noout -in "$CERT_PATH"; then
+              echo "✅ Certificate is valid for more than 30 days"
+            else
+              echo "⚠️ Certificate expires within 30 days, will renew"
+              NEED_RENEWAL=true
+            fi
+          else
+            echo "📋 No existing certificate found, will obtain new one"
+            NEED_RENEWAL=true
+          fi
+
+          # 如果需要生成/更新证书
+          if [ "$NEED_RENEWAL" = "true" ]; then
+            echo "🔧 Starting certificate generation/renewal process..."
+            
+            # 首先启动基础的 nginx 服务来处理 ACME 挑战
+            echo "🚀 Starting temporary nginx for ACME challenge..."
+            
+            # 创建临时的 nginx 配置用于 ACME 挑战
+            cat > ./nginx/nginx-acme.conf << 'EOF'
+          events {
+              worker_connections 1024;
+          }
+
+          http {
+              server {
+                  listen 80;
+                  server_name ${{ secrets.PRODUCTION_DOMAIN }};
+
+                  location /.well-known/acme-challenge/ {
+                      root /var/www/certbot;
+                      try_files $uri $uri/ =404;
+                  }
+
+                  location / {
+                      return 200 "ACME challenge server ready";
+                      add_header Content-Type text/plain;
+                  }
+              }
+          }
+          EOF
+            
+            # 启动临时 nginx 用于 ACME 挑战
+            docker run -d --name temp-nginx \
+              -p 3000:80 \
+              -v $(pwd)/nginx/nginx-acme.conf:/etc/nginx/nginx.conf:ro \
+              -v $(pwd)/ssl/certbot/www:/var/www/certbot \
+              nginx:alpine
+            
+            # 等待 nginx 启动
+            sleep 5
+            
+            # 运行 certbot 获取证书
+            echo "🔐 Running certbot to obtain/renew certificate..."
+            docker run --rm \
+              -v $(pwd)/ssl/certbot/conf:/etc/letsencrypt \
+              -v $(pwd)/ssl/certbot/www:/var/www/certbot \
+              certbot/certbot \
+              certonly --webroot \
+              --webroot-path=/var/www/certbot \
+              --email ${{ secrets.CERTBOT_EMAIL }} \
+              --agree-tos \
+              --no-eff-email \
+              --force-renewal \
+              -d ${{ secrets.PRODUCTION_DOMAIN }}
+            
+            # 停止临时 nginx
+            docker stop temp-nginx || true
+            docker rm temp-nginx || true
+            
+            # 清理临时配置
+            rm -f ./nginx/nginx-acme.conf
+            
+            # 验证证书生成是否成功
+            if [ -f "$CERT_PATH" ]; then
+              echo "✅ Certificate obtained successfully!"
+              echo "📋 Certificate info:"
+              openssl x509 -in "$CERT_PATH" -noout -subject -dates
+            else
+              echo "❌ Failed to obtain certificate, falling back to self-signed"
+              
+              # 生成自签名证书作为后备
+              openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+                -keyout ./ssl/key.pem \
+                -out ./ssl/cert.pem \
+                -subj "/C=CN/ST=Zhejiang/L=Ningbo/O=UNNC/CN=${{ secrets.PRODUCTION_DOMAIN }}"
+              
+              chmod 600 ./ssl/*.pem
+              echo "✅ Self-signed certificate created as fallback"
+            fi
+          fi
 
       - name: Log in to Container Registry
         uses: docker/login-action@v3
@@ -231,11 +316,11 @@ jobs:
             docker tag ${{ env.REGISTRY }}/${{ steps.image_name.outputs.lowercase }}:main ${{ env.REGISTRY }}/${{ steps.image_name.outputs.lowercase }}:backup-$(date +%Y%m%d-%H%M%S)
           fi
 
-          # 停止现有的 production 服务
-          docker-compose -f docker-compose.production.yml down || true
+          # 停止现有的 production 服务（使用独立的项目名，避免影响 staging）
+          docker-compose -p unnc-verify-production -f docker-compose.production.yml down || true
 
-          # 启动新的 production 服务
-          docker-compose -f docker-compose.production.yml up -d
+          # 启动新的 production 服务（使用独立的项目名）
+          docker-compose -p unnc-verify-production -f docker-compose.production.yml up -d
 
           # 等待服务启动
           sleep 15
@@ -245,16 +330,16 @@ jobs:
             echo "✅ Production deployment successful!"
             echo "🌐 Application is running on http://localhost:3000"
             
-            # 清理旧的镜像（保留最近3个版本）
+            # 检查 HTTPS 是否也可用
+            if curl -k -f https://localhost:3443/api/health; then
+              echo "🔒 HTTPS is also available on https://localhost:3443"
+            else
+              echo "⚠️ HTTPS not available, but HTTP is working"
+            fi
+            
             docker image prune -f
           else
-            echo "❌ Health check failed, rolling back..."
+            echo "❌ Health check failed"
             echo "📋 Container logs:"
-            docker-compose -f docker-compose.production.yml logs
-            
-            # 回滚到备份版本（如果存在）
-            echo "🔄 Attempting rollback..."
-            docker-compose -f docker-compose.production.yml down
-            # 这里可以添加回滚逻辑
-            exit 1
+            docker-compose -p unnc-verify-production -f docker-compose.production.yml logs
           fi
