@@ -1,5 +1,7 @@
 # UNNC 身份验证门户
 
+> DEPRECATED: 本仓库已经被 [unnc-freshmen-verifier-gateway](https://github.com/hnrobert/unnc-freshmen-verifier-gateway) 取代，请前往新仓库 take a glance.
+
 这是一个基于 Next.js 和 Tailwind CSS 的身份验证门户系统，支持多个组织和群组的二维码验证。系统通过宁波诺丁汉大学官方入学查询接口验证用户身份，为不同的组织提供安全的群组准入控制。
 
 ## 🌟 功能特性
